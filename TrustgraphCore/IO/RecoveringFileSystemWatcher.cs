@@ -8,7 +8,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading;
 
-namespace TrustpathCore.IO
+namespace TrustgraphCore.IO
 {
     public class RecoveringFileSystemWatcher : BufferingFileSystemWatcher
     {

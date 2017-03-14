@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TrustpathCore.Model
+namespace TrustgraphCore.Model
 {
     public class GraphModel
     {
-        public NodeModel[] Nodes = null;
+        public List<NodeModel> Nodes = new List<NodeModel>();
         public Dictionary<byte[], int> IssuerIdIndex = new Dictionary<byte[], int>();
 
         public Dictionary<string, int> SubjectTypesIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);

@@ -5,7 +5,7 @@
 /// </summary>
 using System;
 
-namespace TrustpathCore.IO
+namespace TrustgraphCore.IO
 {
     public class EventQueueOverflowException : Exception
     {

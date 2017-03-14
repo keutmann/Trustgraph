@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using TrustpathCore.Model;
+using TrustgraphCore.Model;
 
-namespace TrustpathCore.Data
+namespace TrustgraphCore.Data
 {
     public interface IGraphContext
     {

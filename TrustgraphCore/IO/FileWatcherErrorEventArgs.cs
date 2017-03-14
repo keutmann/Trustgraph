@@ -6,7 +6,7 @@
 using System;
 using System.ComponentModel;
 
-namespace TrustpathCore.IO
+namespace TrustgraphCore.IO
 {
     public class FileWatcherErrorEventArgs : HandledEventArgs
     {

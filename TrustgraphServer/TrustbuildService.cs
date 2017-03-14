@@ -13,8 +13,8 @@ using System.Web.Http;
 using TrustchainCore.Configuration;
 using TrustchainCore.Data;
 using TrustchainCore.Extensions;
-using TrustpathCore.Configuration;
-using TrustpathCore.Controllers;
+using TrustgraphCore.Configuration;
+using TrustgraphCore.Controllers;
 
 namespace TrustgraphServer
 {

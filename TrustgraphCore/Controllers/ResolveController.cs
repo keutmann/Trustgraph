@@ -1,14 +1,14 @@
 ﻿using System.Web.Http;
-using TrustpathCore.Service;
+using TrustgraphCore.Service;
 
-namespace TrustpathCore.Controllers
+namespace TrustgraphCore.Controllers
 {
     public class ResolveController : ApiController
     {
 
-        public IGraphService Service { get; set; }
+        public IGraphSearch Service { get; set; }
 
-        public ResolveController(IGraphService service)
+        public ResolveController(IGraphSearch service)
         {
             Service = service;
         }
@@ -17,7 +17,7 @@ namespace TrustpathCore.Controllers
         [HttpGet]
         public string Get([FromUri]string id)
         {
-            var result = Service.Resolve(null);
+            var result = Service.Query(null);
             return result.Result + id;
         }
 

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Practices.Unity;
 using System.Linq;
 using System.Reflection;
-using TrustpathCore.Configuration;
+using TrustgraphCore.Configuration;
 
 namespace TrustgraphServer
 {

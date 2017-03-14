@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace TrustpathCore.Model
+namespace TrustgraphCore.Model
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct NodeModel

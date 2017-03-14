@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TrustpathCore.IO
+namespace TrustgraphCore.IO
 {
     /// <devdoc>
     /// Features:

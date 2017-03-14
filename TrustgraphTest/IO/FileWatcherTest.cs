@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using TrustpathCore.IO;
+using TrustgraphCore.IO;
 
 namespace TrustpathTest.IO
 {

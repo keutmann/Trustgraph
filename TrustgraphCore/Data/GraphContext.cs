@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TrustpathCore.Configuration;
-using TrustpathCore.Model;
+using TrustgraphCore.Configuration;
+using TrustgraphCore.Model;
 
-namespace TrustpathCore.Data
+namespace TrustgraphCore.Data
 {
     [IOC(LifeCycle = IOCLifeCycleType.Singleton)]
     public class GraphContext : IGraphContext

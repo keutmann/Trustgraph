@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TrustpathCore.Configuration
+namespace TrustgraphCore.Configuration
 {
     public enum IOCLifeCycleType
     {

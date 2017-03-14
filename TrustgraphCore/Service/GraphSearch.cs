@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TrustpathCore.Data;
-using TrustpathCore.Model;
+using TrustchainCore.Model;
+using TrustgraphCore.Data;
+using TrustgraphCore.Model;
 
-namespace TrustpathCore.Service
+namespace TrustgraphCore.Service
 {
 
     public class GraphQuery
@@ -14,10 +15,10 @@ namespace TrustpathCore.Service
         public byte[] source;
         public byte[] target;
         public string SubjectType;
-        public string Claim;
+        public string Scope;
         public int Activate;
         public int Expire;
-        public string Scope;
+        public ClaimStandardModel Claim;
     }
 
     public class GraphQueryResult
@@ -31,17 +32,18 @@ namespace TrustpathCore.Service
         }
     }
 
-    public class GraphService : IGraphService
+    public class GraphSearch : IGraphSearch
     {
         public IGraphContext Context { get; set; }
 
-        public GraphService(IGraphContext context)
+        public GraphSearch(IGraphContext context)
         {
             Context = context;
         }
 
-        public GraphQueryResult Resolve(GraphQuery query)
+        public GraphQueryResult Query(GraphQuery query)
         {
+
             return new GraphQueryResult();
         }
     }

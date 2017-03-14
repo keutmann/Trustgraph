@@ -3,11 +3,10 @@
 namespace TrustgraphCore.Model
 {
     [Flags]
-    public enum ClaimType : byte
+    public enum ClaimFlag : byte
     {
         Clear = 1,
         Trust = 2,
-        Confirm = 4,
-        Rating = 8,
+        Confirm = 4
     }
 }
