@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TrustgraphCore.Model;
 
 namespace TrustgraphTest
 {
@@ -12,15 +13,19 @@ namespace TrustgraphTest
     {
 
         [Test]
-        public void DicTest()
+        public void CopyTest()
         {
-            Dictionary<byte[], int> IssuerIdIndex = new Dictionary<byte[], int>();
-            var key = new byte[] { 0, 1 };
-            IssuerIdIndex.Add(key, 100);
+            
+            var i = 0;
+            for (; i < 10; i++)
+            {
+                Console.WriteLine(i);
+                if (i == 9)
+                    break;
+            }
 
-            Assert.IsNotNull(IssuerIdIndex[key]);
-            Assert.IsNull(IssuerIdIndex[new byte[] { 1, 1, 1 }]);
-
+            Console.WriteLine("Final: "+i);
+            Assert.IsTrue(i == 9);
         }
     }
 }
