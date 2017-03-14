@@ -1,10 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using TrustchainCore.Model;
 using TrustgraphCore.Model;
 using TrustchainCore.Extensions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using TrustgraphCore.Data;
 
 namespace TrustgraphCore.Service
@@ -42,31 +41,32 @@ namespace TrustgraphCore.Service
         private void BuildSubject(TrustModel trust, List<EdgeModel> issuerEdges, SubjectModel subject)
         {
             var subjectEdge = Context.CreateEdgeModel(subject, (int)trust.Issuer.Timestamp);
-            var rating = subjectEdge.Claim.Rating;
-            var flagTypes = subjectEdge.Claim.Types;
-            foreach (ClaimType flagtype in flagTypes.GetFlags())
+            var ids = new List<int>();
+            // Find all edges that matchs
+            for (var i = 0 ; i < issuerEdges.Count; i++)
             {
-                var i = 0;
-                for (; i < issuerEdges.Count; i++)
-                {
-                    if (issuerEdges[i].SubjectId != subjectEdge.SubjectId)
-                        continue;
+                if (issuerEdges[i].SubjectId != subjectEdge.SubjectId)
+                    continue;
 
-                    if (issuerEdges[i].SubjectType != subjectEdge.SubjectType)
-                        continue;
+                if (issuerEdges[i].SubjectType != subjectEdge.SubjectType)
+                    continue;
 
-                    if (issuerEdges[i].Scope != subjectEdge.Scope)
-                        continue;
+                if (issuerEdges[i].Scope != subjectEdge.Scope)
+                    continue;
 
-                    if ((issuerEdges[i].Claim.Types & flagtype) == 0)
-                        continue;
+                if ((issuerEdges[i].Claim.Types & subjectEdge.Claim.Types) == 0)
+                    continue;
 
-                    if (issuerEdges[i].Timestamp > subjectEdge.Timestamp) // Make sure that we cannot overwrite with old data
-                        continue;
+                // Edge to be updated!
+                ids.Add(i);
+            }
 
-                    // Edge to be updated!
-                    break;
-                }
+            var flagTypes = subjectEdge.Claim.Types.GetFlags();
+            foreach (ClaimType flagtype in flagTypes)
+            {
+                var i = ids.FirstOrDefault(p => (issuerEdges[p].Claim.Types & flagtype) > 0);
+                if (issuerEdges[i].Timestamp > subjectEdge.Timestamp) // Make sure that we cannot overwrite with old data
+                    continue;
 
                 var nodeEdge = subjectEdge; // Copy the subjectEdge object
                 nodeEdge.Claim.Types = flagtype; // overwrite the flags

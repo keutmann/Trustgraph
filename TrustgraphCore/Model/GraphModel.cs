@@ -10,6 +10,6 @@ namespace TrustgraphCore.Model
 
         public Dictionary<string, int> SubjectTypesIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-        public Dictionary<string, int> ScopeIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, short> ScopeIndex = new Dictionary<string, short>(StringComparer.OrdinalIgnoreCase);
     }
 }

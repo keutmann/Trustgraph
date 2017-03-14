@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,13 +13,13 @@ namespace TrustgraphCore.Service
 
     public class GraphQuery
     {
-        public byte[] source;
-        public byte[] target;
+        public byte[] Issuer;
+        public byte[] Subject;
         public string SubjectType;
         public string Scope;
         public int Activate;
         public int Expire;
-        public ClaimStandardModel Claim;
+        public JObject Claim;
     }
 
     public class GraphQueryResult
@@ -45,6 +46,21 @@ namespace TrustgraphCore.Service
         {
 
             return new GraphQueryResult();
+        }
+
+        private EdgeModel CreateEgdeQuery(GraphQuery query)
+        {
+            var edge = new EdgeModel();
+
+            edge.SubjectId = Context.EnsureNode(query.Subject);
+            edge.SubjectType = Context.EnsureSubjectType(query.SubjectType);
+
+            edge.Scope = (Context.Graph.ScopeIndex.ContainsKey(query.Scope) ? Context.Graph.ScopeIndex[query.Scope] : (short)-1;
+            edge.Activate = query.Activate;
+            edge.Expire = query.Expire;
+            edge.Claim = ClaimStandardModel.Parse(query.Claim);
+
+            return edge;
         }
     }
 }
