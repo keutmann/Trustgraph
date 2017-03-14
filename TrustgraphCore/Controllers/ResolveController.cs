@@ -18,7 +18,7 @@ namespace TrustgraphCore.Controllers
         public string Get([FromUri]string id)
         {
             var result = Service.Query(null);
-            return result.Result + id;
+            return result.MaxCost + id;
         }
 
     }

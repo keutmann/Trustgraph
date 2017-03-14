@@ -45,19 +45,19 @@ namespace TrustgraphCore.Data
         public int EnsureNode(byte[] id)
         {
 
-            if (!Graph.IssuerIdIndex.ContainsKey(id))
+            if (!Graph.NodeIndex.ContainsKey(id))
             {
                 var index = Graph.Nodes.Count;
-                Graph.IssuerIdIndex.Add(id, index);
+                Graph.NodeIndex.Add(id, index);
                 Graph.Nodes.Add(new NodeModel());
 
                 return index;
             }
 
-            return Graph.IssuerIdIndex[id];
+            return Graph.NodeIndex[id];
         }
 
-        public short EnsureSubjectType(string subjectType)
+        public int EnsureSubjectType(string subjectType)
         {
 
             if (!Graph.SubjectTypesIndex.ContainsKey(subjectType))
@@ -71,11 +71,11 @@ namespace TrustgraphCore.Data
             return (short)Graph.SubjectTypesIndex[subjectType];
         }
 
-        public short EnsureScopeIndex(string scope)
+        public int EnsureScopeIndex(string scope)
         {
             if (!Graph.ScopeIndex.ContainsKey(scope))
             {
-                var index = (short)Graph.ScopeIndex.Count;
+                var index = Graph.ScopeIndex.Count;
                 Graph.ScopeIndex.Add(scope, index);
 
                 return index;

@@ -4,8 +4,8 @@ namespace TrustgraphCore.Service
 {
     public interface IGraphSearch
     {
-        IGraphContext Context { get; set; }
+        IGraphContext Data { get; set; }
 
-        GraphQueryResult Query(GraphQuery query);
+        GraphQueryContext Query(GraphQuery query);
     }
 }

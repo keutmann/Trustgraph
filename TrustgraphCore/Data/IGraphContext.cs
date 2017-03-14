@@ -9,7 +9,7 @@ namespace TrustgraphCore.Data
 
         EdgeModel CreateEdgeModel(SubjectModel subject, int timestamp);
         int EnsureNode(byte[] id);
-        short EnsureScopeIndex(string scope);
-        short EnsureSubjectType(string subjectType);
+        int EnsureScopeIndex(string scope);
+        int EnsureSubjectType(string subjectType);
     }
 }
