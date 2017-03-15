@@ -5,7 +5,7 @@ using System.Linq;
 using TrustgraphCore.Data;
 using TrustgraphCore.Model;
 using TrustchainCore.Extensions;
-
+using System.Runtime.InteropServices;
 
 namespace TrustgraphCore.Service
 {
@@ -23,8 +23,43 @@ namespace TrustgraphCore.Service
 
     public class ResultNode
     {
+        public int NodeIndex { get; set; }
+        public int ParentIndex { get; set; }
         public EdgeModel Edge { get; set; }
-        public List<ResultNode> Children = new List<ResultNode>();
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct VisitItem
+    {
+        public int ParentIndex;
+        public int EdgeIndex;
+        public int Cost;
+
+        public VisitItem(int parentIndex, int edgeIndex, int cost)
+        {
+            ParentIndex = parentIndex;
+            EdgeIndex = edgeIndex;
+            Cost = cost;
+        }
+    }
+
+
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct QueueItem 
+    {
+        public int Index;
+        public int ParentIndex;
+        public int EdgeIndex;
+        public int Cost;
+
+        public QueueItem(int index, int parentIndex, int edgeIndex, int cost)
+        {
+            Index = index;
+            ParentIndex = parentIndex;
+            EdgeIndex = edgeIndex;
+            Cost = cost;
+        }
     }
 
     public class GraphQueryContext
@@ -34,13 +69,13 @@ namespace TrustgraphCore.Service
 
         //public List<int> NodeIndex = new List<int>();
         public EdgeModel Query { get; set; }
-        public HashSet<int> Visited { get; set; } 
+        public Dictionary<int, VisitItem> Visited { get; set; } 
         public int MaxCost { get; set; }
         public int Level { get; set; }
 
         public GraphQueryContext()
         {
-            Visited = new HashSet<int>();
+            Visited = new Dictionary<int, VisitItem>();
             MaxCost = 600; // About 6 levels down
         }
     }
@@ -68,57 +103,71 @@ namespace TrustgraphCore.Service
             if(context.Query.SubjectId == -1)
                 throw new ApplicationException("Unknown subject id");
 
-            List<int> nodeIndex = new List<int>();
-            nodeIndex.Add(issuerIndex); // Starting point!
-            var found = false;
-            while(nodeIndex.Count > 0 || found)
+            List<QueueItem> queue = new List<QueueItem>();
+            queue.Add(new QueueItem(issuerIndex, -1, -1, 0)); // Starting point!
+
+            while (queue.Count > 0 || context.Level > 6)
             {
-                foreach (var index in nodeIndex)
+                // Check current level for trust
+                var results = new List<ResultNode>();
+                foreach (var item in queue)
                 {
-                    Query(index, context);
+                    var result = Query(item, context);
+                    if(result != null)
+                    {
+                        results.Add(result);
+                    }
+                }
+                // Stop here if trust found
+                if(results.Count > 0)
+                {
+
+                    break; // Stop processing the query!
                 }
 
-                var list = new List<int>();
-                foreach (var index in nodeIndex)
+
+                // Continue to next level
+                var subQueue = new List<QueueItem>();
+                foreach (var item in queue)
                 {
-                    list.AddRange(Enqueue(index, context));
+                    subQueue.AddRange(Enqueue(item, context));
                 }
-                nodeIndex = list;
-                context.Level++;
+                queue = subQueue;
+
+                context.Level++; 
             }
 
             return context;
         }
 
-        public ResultNode Query(int nodeIndex, GraphQueryContext context)
+        public ResultNode Query(QueueItem item, GraphQueryContext context)
         {
             ResultNode result = null;
 
-            context.Visited.Add(nodeIndex); // Makes sure that we do not run this block again.
+            context.Visited.Add(item.Index, new VisitItem(item.ParentIndex, item.EdgeIndex, item.Cost)); // Makes sure that we do not run this block again.
 
-            var node = Data.Graph.Nodes[nodeIndex];
+            var node = Data.Graph.Nodes[item.Index];
 
-            var index = PeekNode(node, context);
-            if (index >= 0)
+            var edgeIndex = PeekNode(node, context);
+            if (edgeIndex >= 0)
             {
                 // found!!
                 result = new ResultNode();
-                result.Edge = node.Edges[index];
+                result.NodeIndex = item.Index;
+                result.ParentIndex = item.ParentIndex;
+                result.Edge = node.Edges[edgeIndex];
             }
             return result;
         }
 
-        public List<int> Enqueue(int nodeIndex, GraphQueryContext context)
+        public List<QueueItem> Enqueue(QueueItem item, GraphQueryContext context)
         {
-            var list = new List<int>();
-            var node = Data.Graph.Nodes[nodeIndex];
+            var list = new List<QueueItem>();
+            var node = Data.Graph.Nodes[item.Index];
 
             var edges = node.Edges;
             for (var i = 0; i < edges.Length; i++)
             {
-                if (context.Visited.Contains(edges[i].SubjectId))
-                    continue; // We have already done this one
-
                 if (edges[i].SubjectType != context.Query.SubjectType ||
                     edges[i].Scope != context.Query.Scope ||
                     (edges[i].Claim.Types & context.Query.Claim.Types) == 0)
@@ -131,20 +180,16 @@ namespace TrustgraphCore.Service
                 if ((edges[i].Claim.Flags & context.Query.Claim.Types) == 0) // The value is false, do not follow!
                     continue;
 
-                //var childCost = cost + edges[i].Cost; // 
-                //if (childCost > context.MaxCost)
-                //    continue;
+                if (context.Visited.ContainsKey(edges[i].SubjectId))
+                {
+                    var visited = context.Visited[edges[i].SubjectId];
+                    if(visited.Cost > edges[i].Cost) // If the current cost is lower then its a better route.
+                        context.Visited[edges[i].SubjectId] = new VisitItem(item.Index, i, edges[i].Cost); // Overwrite the old visit with the new because of lower cost
 
-                list.Add(edges[i].SubjectId);
+                    continue; // We have already done this node, so no need to reprocess.
+                }
 
-                //var childResult = Query(edges[i].SubjectId, childCost, context);
-                //if(childResult != null) // A result has been found 
-                //{
-                //    if (result == null)
-                //        result = new ResultNode();
-
-                //    result.Children.Add(childResult);
-                //}
+                list.Add(new QueueItem(edges[i].SubjectId, item.Index, i, edges[i].Cost));
             }
             return list;
         }
