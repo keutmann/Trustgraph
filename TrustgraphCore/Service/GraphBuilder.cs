@@ -24,7 +24,7 @@ namespace TrustgraphCore.Service
             {
                 var issuerIndex = Context.EnsureNode(trust.Issuer.Id);
                 var issuerNode = Context.Graph.Nodes[issuerIndex];
-                var issuerEdges = new List<EdgeModel>(issuerNode.Edges);
+                var issuerEdges = new List<EdgeModel>(issuerNode.Edges != null ? issuerNode.Edges : new EdgeModel[0]);
 
                 foreach (var subject in trust.Issuer.Subjects)
                 {
@@ -64,16 +64,20 @@ namespace TrustgraphCore.Service
             var flagTypes = subjectEdge.Claim.Types.GetFlags();
             foreach (ClaimType flagtype in flagTypes)
             {
-                var i = ids.FirstOrDefault(p => (issuerEdges[p].Claim.Types & flagtype) > 0);
-                if (issuerEdges[i].Timestamp > subjectEdge.Timestamp) // Make sure that we cannot overwrite with old data
-                    continue;
+                var i = -1;
+                if (ids.Count > 0)
+                {
+                    i = ids.FirstOrDefault(p => (issuerEdges[p].Claim.Types & flagtype) > 0);
+                    if (issuerEdges[i].Timestamp > subjectEdge.Timestamp) // Make sure that we cannot overwrite with old data
+                        continue;
+                }
 
                 var nodeEdge = subjectEdge; // Copy the subjectEdge object
                 nodeEdge.Claim.Types = flagtype; // overwrite the flags
                 nodeEdge.Claim.Flags = subjectEdge.Claim.Flags & flagtype; // overwrite the flags
                 nodeEdge.Claim.Rating = (flagtype == ClaimType.Rating) ? subjectEdge.Claim.Rating : (byte)0;
 
-                if (i < issuerEdges.Count)
+                if (i >= 0 && i < issuerEdges.Count)
                     issuerEdges[i] = nodeEdge;
                 else
                     issuerEdges.Add(nodeEdge);

@@ -20,6 +20,9 @@ namespace TrustgraphCore.Model
             foreach (var name in names)
             {
                 var token = claim.GetValue(name, StringComparison.OrdinalIgnoreCase);
+                if (token == null)
+                    continue;
+
                 if (token.Type == JTokenType.Null)
                     continue;
 
