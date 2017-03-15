@@ -1,4 +1,5 @@
-﻿using System.Web.Http;
+﻿using Newtonsoft.Json;
+using System.Web.Http;
 using TrustgraphCore.Service;
 
 namespace TrustgraphCore.Controllers
@@ -17,8 +18,12 @@ namespace TrustgraphCore.Controllers
         [HttpGet]
         public string Get([FromUri]string id)
         {
-            var result = Service.Query(null);
-            return result.MaxCost + id;
+            var query = new GraphQuery();
+            //query.Issuer = 
+
+            var result = Service.Query(query);
+
+            return JsonConvert.SerializeObject(result);
         }
 
     }

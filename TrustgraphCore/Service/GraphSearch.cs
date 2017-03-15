@@ -21,11 +21,29 @@ namespace TrustgraphCore.Service
         public JObject Claim;
     }
 
-    public class ResultNode
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public struct ResultNode
     {
         public int NodeIndex { get; set; }
         public int ParentIndex { get; set; }
         public EdgeModel Edge { get; set; }
+    }
+
+    public class TreeNode
+    {
+        public EdgeModel? Edge;
+        public List<TreeNode> Children = new List<TreeNode>();
+
+        public TreeNode(EdgeModel? edge)
+        {
+            Edge = edge;
+        }
+
+        public TreeNode(EdgeModel? edge, TreeNode child) : this(edge)
+        {
+            Children.Add(child);
+        }
+            
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -62,23 +80,40 @@ namespace TrustgraphCore.Service
         }
     }
 
-    public class GraphQueryContext
+    /// <summary>
+    /// The result of the query
+    /// </summary>
+    public class ResultContext
     {
-        //public List<EdgeModel> Edges;
-        //public string Result;
+        public int TotalNodeCount = 0;
+        public int TotalEdgeCount = 0;
+        public int MatchEdgeCount = 0;
 
-        //public List<int> NodeIndex = new List<int>();
+        public TreeNode Result { get; set; }
+    }
+
+
+    public class QueryContext 
+    {
         public EdgeModel Query { get; set; }
-        public Dictionary<int, VisitItem> Visited { get; set; } 
+        public Dictionary<int, VisitItem> Visited { get; set; }
+        public List<ResultNode> Results { get; set; }
         public int MaxCost { get; set; }
         public int Level { get; set; }
+        public int MaxLevel { get; set; }
+        public int TotalNodeCount = 0;
+        public int TotalEdgeCount = 0;
+        public int MatchEdgeCount = 0;
 
-        public GraphQueryContext()
+        public QueryContext()
         {
             Visited = new Dictionary<int, VisitItem>();
             MaxCost = 600; // About 6 levels down
+            Results = new List<ResultNode>();
+            MaxLevel = 7;
         }
     }
+
 
     public class GraphSearch : IGraphSearch
     {
@@ -91,76 +126,148 @@ namespace TrustgraphCore.Service
             UnixTime = DateTime.Now.ToUnixTime();
         }
 
-        public GraphQueryContext Query(GraphQuery query)
+        public ResultContext Query(GraphQuery query)
         {
-            var issuerIndex = Data.Graph.NodeIndex.ContainsKey(query.Issuer) ? Data.Graph.NodeIndex[query.Issuer]: -1;
+            var issuerIndex = Data.Graph.NodeIndex.ContainsKey(query.Issuer) ? Data.Graph.NodeIndex[query.Issuer] : -1;
             if (issuerIndex == -1)
                 throw new ApplicationException("Unknown issuer id");
 
-            var context = new GraphQueryContext();
-
+            var context = new QueryContext(); // Do not return this object, its heavy on memory!
             context.Query = CreateEgdeQuery(query);
-            if(context.Query.SubjectId == -1)
+            if (context.Query.SubjectId == -1)
                 throw new ApplicationException("Unknown subject id");
 
+            Query(issuerIndex, context);
+
+            // Create a stripdown version of QueryContext in order to release Query memory when exiting this function
+            var result = BuildResultContext(context);
+
+            if (context.Results.Count > 0) 
+                result.Result = BuildResultTree(context);
+
+            return result;
+        }
+
+        public ResultContext BuildResultContext(QueryContext context)
+        {
+            var result = new ResultContext();
+
+            result.TotalNodeCount = context.TotalNodeCount;
+            result.TotalEdgeCount = context.TotalEdgeCount;
+            result.MatchEdgeCount = context.MatchEdgeCount;
+           
+            return result;
+        }
+
+        
+        public TreeNode BuildResultTree(QueryContext context)
+        {
+            var treeList = new Dictionary<int, TreeNode>();
+            TreeNode rootNode = new TreeNode(null);
+
+            foreach (var item in context.Results)
+            {
+                var level = 0;
+                var node = new TreeNode(item.Edge);
+                treeList.Add(item.NodeIndex, node);
+                var index = item.ParentIndex;
+                if (index < 0)
+                    rootNode.Children.Add(node); // Set start index, so we know where to begin
+
+                while (index >= 0 && level < context.Level) // Level functuions as a dead man switch
+                {
+                    var visited = context.Visited[index];
+                    var parentNode = Data.Graph.Nodes[index];
+                    var edge = parentNode.Edges[visited.EdgeIndex];
+
+                    if (treeList.ContainsKey(index))
+                    {
+                        treeList[index].Children.Add(node);
+                        break; // Stop here, parents have been build!
+                    }
+
+                    var parent = new TreeNode(edge, node);
+                    treeList.Add(index, parent);
+                    node = parent;
+
+                    if (visited.ParentIndex < 0)
+                        rootNode.Children.Add(node); // Set start node, so we know where to begin
+
+                    // Now go one level up!
+                    index = visited.ParentIndex;
+
+                    level++;
+                }
+            }
+            return rootNode;
+        }
+
+        public void Query(int issuerIndex, QueryContext context)
+        {
             List<QueueItem> queue = new List<QueueItem>();
             queue.Add(new QueueItem(issuerIndex, -1, -1, 0)); // Starting point!
 
             while (queue.Count > 0 || context.Level > 6)
             {
+                context.TotalEdgeCount += queue.Count;
+
                 // Check current level for trust
-                var results = new List<ResultNode>();
                 foreach (var item in queue)
-                {
-                    var result = Query(item, context);
-                    if(result != null)
-                    {
-                        results.Add(result);
-                    }
-                }
-                // Stop here if trust found
-                if(results.Count > 0)
-                {
+                    PeekNode(item, context);
 
+                // Stop here if trust found at current level
+                if (context.Results.Count > 0)
                     break; // Stop processing the query!
-                }
-
 
                 // Continue to next level
                 var subQueue = new List<QueueItem>();
                 foreach (var item in queue)
-                {
                     subQueue.AddRange(Enqueue(item, context));
-                }
+
                 queue = subQueue;
 
-                context.Level++; 
+                context.Level++;
             }
-
-            return context;
         }
 
-        public ResultNode Query(QueueItem item, GraphQueryContext context)
+        private bool PeekNode(QueueItem item, QueryContext context)
         {
-            ResultNode result = null;
 
-            context.Visited.Add(item.Index, new VisitItem(item.ParentIndex, item.EdgeIndex, item.Cost)); // Makes sure that we do not run this block again.
+            context.Visited.Add(item.Index, 
+                new VisitItem(item.ParentIndex, item.EdgeIndex, item.Cost)); // Makes sure that we do not run this block again.
 
-            var node = Data.Graph.Nodes[item.Index];
+            var edges = Data.Graph.Nodes[item.Index].Edges;
 
-            var edgeIndex = PeekNode(node, context);
-            if (edgeIndex >= 0)
+            for (var i = 0; i < edges.Length; i++)
             {
-                // found!!
-                result = new ResultNode();
-                result.NodeIndex = item.Index;
-                result.ParentIndex = item.ParentIndex;
-                result.Edge = node.Edges[edgeIndex];
+                context.TotalEdgeCount++;
+
+                if (edges[i].SubjectType != context.Query.SubjectType ||
+                    edges[i].Scope != context.Query.Scope ||
+                    (edges[i].Claim.Types & context.Query.Claim.Types) == 0)
+                    continue;
+
+                if (edges[i].Activate > UnixTime ||
+                   (edges[i].Expire > 0 && edges[i].Expire < UnixTime))
+                    continue;
+
+                context.MatchEdgeCount++;
+
+                if (edges[i].SubjectId == context.Query.SubjectId)
+                {
+                    var result = new ResultNode();
+                    result.NodeIndex = item.Index;
+                    result.ParentIndex = item.ParentIndex;
+                    result.Edge = edges[i];
+                    context.Results.Add(result);
+                    return true;
+                }
             }
-            return result;
+
+            return false;
         }
 
-        public List<QueueItem> Enqueue(QueueItem item, GraphQueryContext context)
+        public List<QueueItem> Enqueue(QueueItem item, QueryContext context)
         {
             var list = new List<QueueItem>();
             var node = Data.Graph.Nodes[item.Index];
@@ -193,33 +300,6 @@ namespace TrustgraphCore.Service
             }
             return list;
         }
-
-
-
-        public int PeekNode(NodeModel node, GraphQueryContext context)
-        {
-            var edges = node.Edges;
-
-            for (var i = 0; i < edges.Length; i++)
-            {
-                if (edges[i].SubjectType != context.Query.SubjectType ||
-                    edges[i].Scope != context.Query.Scope ||
-                    (edges[i].Claim.Types & context.Query.Claim.Types) == 0)
-                    continue;
-
-                if (edges[i].Activate > UnixTime ||
-                   (edges[i].Expire > 0 && edges[i].Expire < UnixTime))
-
-                    continue;
-                if (edges[i].SubjectId == context.Query.SubjectId)
-                {
-                    // Found the subject
-                    return i;
-                }
-            }
-            return -1;
-        }
-
 
 
         private EdgeModel CreateEgdeQuery(GraphQuery query)
