@@ -39,6 +39,10 @@ namespace TrustgraphTest.Service
         public void BuildEdge1()
         {
             var trust = TrustBuilder.CreateTrust("A", "B", TrustBuilder.CreateTrustTrue());
+            trust.Issuer.Subjects[0].Activate = DateTime.Now.AddDays(1).UnixTimestamp();
+            trust.Issuer.Subjects[0].Expire = DateTime.Now.AddDays(-1).UnixTimestamp();
+            trust.Issuer.Subjects[0].Cost = 112;
+
             var trusts = new List<TrustModel>();
             trusts.Add(trust);
             var graphService = new GraphContext();
@@ -49,7 +53,11 @@ namespace TrustgraphTest.Service
             Assert.IsTrue(graphService.Graph.Nodes.Count == 2);
             Assert.IsTrue(graphService.Graph.Nodes[0].Edges.Length == 1);
             Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Claim.Types == ClaimType.Trust);
             Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].SubjectId == 1);
+            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Cost == trust.Issuer.Subjects[0].Cost);
+            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Activate == trust.Issuer.Subjects[0].Activate);
+            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Expire == trust.Issuer.Subjects[0].Expire);
 
             Assert.IsTrue(graphService.Graph.NodeIndex.Count == 2);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.Count == 2);
@@ -152,6 +160,43 @@ namespace TrustgraphTest.Service
             Assert.IsTrue(graphService.Graph.Nodes[2].Edges[0].SubjectId == 0);
 
             Assert.IsTrue(graphService.Graph.NodeIndex.Count == 3);
+            Assert.IsTrue(graphService.Graph.SubjectTypesIndex.Count == 2);
+            Assert.IsTrue(graphService.Graph.SubjectTypesIndex.ContainsKey("person"));
+            Assert.IsTrue(graphService.Graph.ScopeIndex.Count == 2);
+            Assert.IsTrue(graphService.Graph.ScopeIndex.ContainsKey("global"));
+        }
+
+        [Test]
+        public void BuildEdge5()
+        {
+            var trusts = new List<TrustModel>();
+            trusts.Add(TrustBuilder.CreateTrust("A", "B", TrustBuilder.CreateTrustTrue()));
+            trusts.Add(TrustBuilder.CreateTrust("A", "C", TrustBuilder.CreateTrustTrue()));
+            trusts.Add(TrustBuilder.CreateTrust("B", "C", TrustBuilder.CreateTrustTrue()));
+            trusts.Add(TrustBuilder.CreateTrust("C", "A", TrustBuilder.CreateTrustTrue()));
+            trusts.Add(TrustBuilder.CreateTrust("D", "E", TrustBuilder.CreateTrustTrue()));
+            var graphService = new GraphContext();
+            var builder = new GraphBuilder(graphService);
+
+            builder.Build(trusts);
+
+            Assert.IsTrue(graphService.Graph.Nodes.Count == 5);
+
+            Assert.IsTrue(graphService.Graph.Nodes[0].Edges.Length == 2);
+            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].SubjectId == 1);
+            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[1].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[1].SubjectId == 2);
+
+            Assert.IsTrue(graphService.Graph.Nodes[1].Edges.Length == 1);
+            Assert.IsTrue(graphService.Graph.Nodes[1].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Nodes[1].Edges[0].SubjectId == 2);
+
+            Assert.IsTrue(graphService.Graph.Nodes[2].Edges.Length == 1);
+            Assert.IsTrue(graphService.Graph.Nodes[2].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Nodes[2].Edges[0].SubjectId == 0);
+
+            Assert.IsTrue(graphService.Graph.NodeIndex.Count == 5);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.Count == 2);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.ContainsKey("person"));
             Assert.IsTrue(graphService.Graph.ScopeIndex.Count == 2);
