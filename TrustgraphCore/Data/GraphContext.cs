@@ -52,6 +52,7 @@ namespace TrustgraphCore.Data
             var index = Graph.Nodes.Count;
             Graph.NodeIndex.Add(id, index);
             Graph.Nodes.Add(new NodeModel());
+            Graph.IdIndex.Add(index, id); // Revert from the internal index to the id address
 
             return index;
         }

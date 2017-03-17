@@ -117,18 +117,18 @@ namespace TrustgraphCore.Service
 
     public class GraphSearch : IGraphSearch
     {
-        public IGraphContext Data { get; set; }
+        public IGraphContext GraphService { get; set; }
         public long UnixTime { get; set; } 
 
         public GraphSearch(IGraphContext data)
         {
-            this.Data = data;
+            this.GraphService = data;
             UnixTime = DateTime.Now.ToUnixTime();
         }
 
         public ResultContext Query(GraphQuery query)
         {
-            var issuerIndex = Data.Graph.NodeIndex.ContainsKey(query.Issuer) ? Data.Graph.NodeIndex[query.Issuer] : -1;
+            var issuerIndex = GraphService.Graph.NodeIndex.ContainsKey(query.Issuer) ? GraphService.Graph.NodeIndex[query.Issuer] : -1;
             if (issuerIndex == -1)
                 throw new ApplicationException("Unknown issuer id");
 
@@ -167,34 +167,39 @@ namespace TrustgraphCore.Service
 
             foreach (var item in context.Results)
             {
+                var index = item.NodeIndex;
+                var visited = context.Visited[index];
+                
                 var level = 0;
                 var node = new TreeNode(item.Edge);
-                treeList.Add(item.NodeIndex, node);
-                var index = item.ParentIndex;
-                if (index < 0)
-                    rootNode.Children.Add(node); // Set start index, so we know where to begin
-
-                while (index >= 0 && level < context.Level) // Level functuions as a dead man switch
+                treeList.Add(index, node);
+                if (visited.ParentIndex < 0)
                 {
-                    var visited = context.Visited[index];
-                    var parentNode = Data.Graph.Nodes[index];
+                    rootNode.Children.Add(node); // Set start index, so we know where to begin
+                    continue;
+                }
+
+                
+                while (visited.ParentIndex >= 0 && level < context.Level) // Level functuions as a dead man switch
+                {
+                    var parentNode = GraphService.Graph.Nodes[visited.ParentIndex];
                     var edge = parentNode.Edges[visited.EdgeIndex];
 
-                    if (treeList.ContainsKey(index))
+                    if (treeList.ContainsKey(visited.ParentIndex))
                     {
-                        treeList[index].Children.Add(node);
+                        treeList[visited.ParentIndex].Children.Add(node);
                         break; // Stop here, parents have been build!
                     }
 
                     var parent = new TreeNode(edge, node);
-                    treeList.Add(index, parent);
+                    treeList.Add(visited.ParentIndex, parent);
                     node = parent;
+
+                    // Now go one level up!
+                    visited = context.Visited[visited.ParentIndex];
 
                     if (visited.ParentIndex < 0)
                         rootNode.Children.Add(node); // Set start node, so we know where to begin
-
-                    // Now go one level up!
-                    index = visited.ParentIndex;
 
                     level++;
                 }
@@ -209,7 +214,7 @@ namespace TrustgraphCore.Service
 
             while (queue.Count > 0 || context.Level > 6)
             {
-                context.TotalEdgeCount += queue.Count;
+                context.TotalNodeCount += queue.Count;
 
                 // Check current level for trust
                 foreach (var item in queue)
@@ -236,7 +241,7 @@ namespace TrustgraphCore.Service
             context.Visited.Add(item.Index, 
                 new VisitItem(item.ParentIndex, item.EdgeIndex, item.Cost)); // Makes sure that we do not run this block again.
 
-            var edges = Data.Graph.Nodes[item.Index].Edges;
+            var edges = GraphService.Graph.Nodes[item.Index].Edges;
 
             for (var i = 0; i < edges.Length; i++)
             {
@@ -270,7 +275,7 @@ namespace TrustgraphCore.Service
         public List<QueueItem> Enqueue(QueueItem item, QueryContext context)
         {
             var list = new List<QueueItem>();
-            var node = Data.Graph.Nodes[item.Index];
+            var node = GraphService.Graph.Nodes[item.Index];
 
             var edges = node.Edges;
             for (var i = 0; i < edges.Length; i++)
@@ -306,9 +311,9 @@ namespace TrustgraphCore.Service
         {
             var edge = new EdgeModel();
 
-            edge.SubjectId = Data.Graph.NodeIndex.ContainsKey(query.Subject) ? Data.Graph.NodeIndex[query.Subject] : -1;
-            edge.SubjectType = Data.Graph.SubjectTypesIndex.ContainsKey(query.SubjectType) ? Data.Graph.SubjectTypesIndex[query.SubjectType] : -1;
-            edge.Scope = (Data.Graph.ScopeIndex.ContainsKey(query.Scope)) ? Data.Graph.ScopeIndex[query.Scope] : -1;
+            edge.SubjectId = GraphService.Graph.NodeIndex.ContainsKey(query.Subject) ? GraphService.Graph.NodeIndex[query.Subject] : -1;
+            edge.SubjectType = GraphService.Graph.SubjectTypesIndex.ContainsKey(query.SubjectType) ? GraphService.Graph.SubjectTypesIndex[query.SubjectType] : -1;
+            edge.Scope = (GraphService.Graph.ScopeIndex.ContainsKey(query.Scope)) ? GraphService.Graph.ScopeIndex[query.Scope] : -1;
             
             edge.Activate = query.Activate;
             edge.Expire = query.Expire;

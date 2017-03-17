@@ -9,9 +9,8 @@ namespace TrustgraphCore.Model
     {
         public List<NodeModel> Nodes = new List<NodeModel>();
         public Dictionary<byte[], int> NodeIndex = new Dictionary<byte[], int>(new ByteArrayComparer());
-
+        public Dictionary<int, byte[]> IdIndex = new Dictionary<int, byte[]>();
         public Dictionary<string, int> SubjectTypesIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-
         public Dictionary<string, int> ScopeIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         public GraphModel()
