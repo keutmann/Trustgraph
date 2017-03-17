@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using TrustchainCore.Model;
 using TrustgraphCore.Configuration;
 using TrustgraphCore.Model;
+using TrustchainCore.Extensions;
+using System.Diagnostics;
 
 namespace TrustgraphCore.Data
 {
@@ -44,17 +46,14 @@ namespace TrustgraphCore.Data
 
         public int EnsureNode(byte[] id)
         {
+            if (Graph.NodeIndex.ContainsKey(id))
+                return Graph.NodeIndex[id];
 
-            if (!Graph.NodeIndex.ContainsKey(id))
-            {
-                var index = Graph.Nodes.Count;
-                Graph.NodeIndex.Add(id, index);
-                Graph.Nodes.Add(new NodeModel());
+            var index = Graph.Nodes.Count;
+            Graph.NodeIndex.Add(id, index);
+            Graph.Nodes.Add(new NodeModel());
 
-                return index;
-            }
-
-            return Graph.NodeIndex[id];
+            return index;
         }
 
         public int EnsureSubjectType(string subjectType)

@@ -32,9 +32,10 @@ namespace TrustgraphCore.Service
                 }
 
                 // Remove old edges!
-                issuerEdges.RemoveAll(e => e.Expire < unixTime);
+                issuerEdges.RemoveAll(e => e.Expire > 0 && e.Expire < unixTime);
 
                 issuerNode.Edges = issuerEdges.ToArray();
+                Context.Graph.Nodes[issuerIndex] = issuerNode;
             }
         }
 

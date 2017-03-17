@@ -53,7 +53,7 @@ namespace TrustgraphTest
         public static JObject CreateTrustTrue()
         {
             return new JObject(
-                    new JProperty("trust", "true")
+                    new JProperty("trust", true)
                     );
         }
     }
