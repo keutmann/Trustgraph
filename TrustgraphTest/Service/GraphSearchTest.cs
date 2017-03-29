@@ -36,8 +36,9 @@ namespace TrustgraphTest.Service
             query.Claim = trust.Issuer.Subjects[0].Claim;
 
             var result = search.Query(query);
-            Assert.NotNull(result.Result);
-            Assert.IsTrue(result.Result.Children.Count == 1);
+            Assert.NotNull(result.Node);
+            Assert.IsTrue(result.Node.NodeIndex == 0);
+            Assert.IsTrue(result.Node.Children.Count == 0);
         }
 
         [Test]
@@ -61,12 +62,12 @@ namespace TrustgraphTest.Service
             query.Claim = trust2.Issuer.Subjects[0].Claim;
 
             var result = search.Query(query);
-            Assert.NotNull(result.Result);
-            Assert.IsTrue(result.Result.Children.Count == 1);
-            Assert.IsTrue(result.Result.Children[0].Children.Count == 1);
+            Assert.NotNull(result.Node);
+            Assert.IsTrue(result.Node.Children.Count == 1);
+            Assert.IsTrue(result.Node.Children[0].Children.Count == 0);
 
-            Console.WriteLine("Start id: "+search.GraphService.Graph.IdIndex[0].ConvertToHex()); // A
-            PrintResult(result.Result, search.GraphService, 1);
+            //Console.WriteLine("Start id: "+search.GraphService.Graph.IdIndex[0].ConvertToHex()); // A
+            PrintResult(result.Node, search.GraphService, 1);
 
         }
 
@@ -82,6 +83,9 @@ namespace TrustgraphTest.Service
             trusts.Add(trust3);
             trusts.Add(TrustBuilder.CreateTrust("B", "E", TrustBuilder.CreateTrustTrue()));
             trusts.Add(TrustBuilder.CreateTrust("E", "D", TrustBuilder.CreateTrustTrue()));
+            trusts.Add(TrustBuilder.CreateTrust("B", "F", TrustBuilder.CreateTrustTrue()));
+            trusts.Add(TrustBuilder.CreateTrust("F", "G", TrustBuilder.CreateTrustTrue()));
+            trusts.Add(TrustBuilder.CreateTrust("G", "D", TrustBuilder.CreateTrustTrue())); // Long way, no trust
 
 
             var search = BuildSearch(trusts);
@@ -96,23 +100,28 @@ namespace TrustgraphTest.Service
             query.Claim = trust2.Issuer.Subjects[0].Claim;
 
             var result = search.Query(query);
-            Assert.NotNull(result.Result);
-            Assert.IsTrue(result.Result.Children.Count == 1);
-            Assert.IsTrue(result.Result.Children[0].Children.Count == 1);
+            Assert.NotNull(result.Node);
+            //Assert.IsTrue(result.Node.Children.Count == 1);
+            //Assert.IsTrue(result.Node.Children[0].Children.Count == 1);
 
-            Console.WriteLine("Start id: " + search.GraphService.Graph.IdIndex[0].ConvertToHex()); // A
-            PrintResult(result.Result, search.GraphService, 1);
-
+            //Console.WriteLine("Start id: " + search.GraphService.Graph.IdIndex[0].ConvertToHex()); // A
+            PrintResult(result.Node, search.GraphService, 0);
         }
+
         private void PrintResult(TreeNode node, IGraphContext service, int level)
         {
-            if(node.Edge != null)
+            if (node.Children.Count == 0)
             {
                 Console.Write("".PadLeft(level, '-'));
-                Console.WriteLine("Level {0} - Subject Id: {1}", level, service.Graph.IdIndex[node.Edge.Value.SubjectId].ConvertToHex());
+                Console.WriteLine("Issuer: {1} trust subject {2}", level, node.NodeIndex, node.Edge.Value.SubjectId);
+                return;
             }
+
             foreach (var child in node.Children)
             {
+                Console.Write("".PadLeft(level, '-'));
+                Console.WriteLine("Issuer: {1} trust subject {2}", level, node.NodeIndex, child.NodeIndex);
+
                 PrintResult(child, service, level + 1);
             }
         }

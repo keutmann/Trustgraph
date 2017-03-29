@@ -6,6 +6,7 @@ using TrustgraphCore.Data;
 using TrustgraphCore.Model;
 using TrustchainCore.Extensions;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace TrustgraphCore.Service
 {
@@ -22,7 +23,7 @@ namespace TrustgraphCore.Service
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct ResultNode
+    public class ResultNode
     {
         public int NodeIndex { get; set; }
         public int ParentIndex { get; set; }
@@ -31,18 +32,33 @@ namespace TrustgraphCore.Service
 
     public class TreeNode
     {
+        public int NodeIndex { get; set; }
+        public int ParentIndex { get; set; }
         public EdgeModel? Edge;
         public List<TreeNode> Children = new List<TreeNode>();
 
-        public TreeNode(EdgeModel? edge)
+
+        public TreeNode()
         {
-            Edge = edge;
+
         }
 
-        public TreeNode(EdgeModel? edge, TreeNode child) : this(edge)
+        public TreeNode(ResultNode result)
         {
-            Children.Add(child);
+            Edge = result.Edge;
+            NodeIndex = result.NodeIndex;
+            ParentIndex = result.ParentIndex;
         }
+
+        //public TreeNode(EdgeModel? edge)
+        //{
+        //    Edge = edge;
+        //}
+
+        //public TreeNode(EdgeModel? edge, TreeNode child) : this(edge)
+        //{
+        //    Children.Add(child);
+        //}
             
     }
 
@@ -89,7 +105,7 @@ namespace TrustgraphCore.Service
         public int TotalEdgeCount = 0;
         public int MatchEdgeCount = 0;
 
-        public TreeNode Result { get; set; }
+        public TreeNode Node { get; set; }
     }
 
 
@@ -142,8 +158,8 @@ namespace TrustgraphCore.Service
             // Create a stripdown version of QueryContext in order to release Query memory when exiting this function
             var result = BuildResultContext(context);
 
-            if (context.Results.Count > 0) 
-                result.Result = BuildResultTree(context);
+            if (context.Results.Count > 0)
+                result.Node = BuildResultNode(context);//result.Node = BuildResultTree(context);
 
             return result;
         }
@@ -159,54 +175,53 @@ namespace TrustgraphCore.Service
             return result;
         }
 
-        
-        public TreeNode BuildResultTree(QueryContext context)
+        public TreeNode BuildResultNode(QueryContext context)
         {
-            var treeList = new Dictionary<int, TreeNode>();
-            TreeNode rootNode = new TreeNode(null);
-
+            var nodelist = new Dictionary<int, TreeNode>();
+            var currentNodes = new List<TreeNode>();
             foreach (var item in context.Results)
             {
-                var index = item.NodeIndex;
-                var visited = context.Visited[index];
-                
-                var level = 0;
-                var node = new TreeNode(item.Edge);
-                treeList.Add(index, node);
-                if (visited.ParentIndex < 0)
-                {
-                    rootNode.Children.Add(node); // Set start index, so we know where to begin
-                    continue;
-                }
+                var tn = new TreeNode(item);
+                nodelist.Add(item.NodeIndex, tn);
+                currentNodes.Add(tn);
+            }
 
-                
-                while (visited.ParentIndex >= 0 && level < context.Level) // Level functuions as a dead man switch
+            while (currentNodes.Count > 0)
+            {
+                var parentNodes = new List<TreeNode>();
+                foreach (var tn in currentNodes)
                 {
-                    var parentNode = GraphService.Graph.Nodes[visited.ParentIndex];
-                    var edge = parentNode.Edges[visited.EdgeIndex];
+                    if (tn.ParentIndex < 0)
+                        return tn;  // we found the root node!
 
-                    if (treeList.ContainsKey(visited.ParentIndex))
+                    if(tn.Edge == null)
                     {
-                        treeList[visited.ParentIndex].Children.Add(node);
-                        break; // Stop here, parents have been build!
+                        var visited = context.Visited[tn.NodeIndex];
+                        var graphNode = GraphService.Graph.Nodes[tn.ParentIndex];
+                        tn.Edge = graphNode.Edges[visited.EdgeIndex];
                     }
 
-                    var parent = new TreeNode(edge, node);
-                    treeList.Add(visited.ParentIndex, parent);
-                    node = parent;
+                    if(nodelist.ContainsKey(tn.ParentIndex))
+                    {
+                        // A previouse node in the collection has already created this
+                        nodelist[tn.ParentIndex].Children.Add(tn);
+                        continue;
+                    }
 
-                    // Now go one level up!
-                    visited = context.Visited[visited.ParentIndex];
+                    var parentNode = new TreeNode();
+                    parentNode.NodeIndex = tn.ParentIndex;
+                    parentNode.ParentIndex = context.Visited[tn.ParentIndex].ParentIndex;
+                    parentNode.Children.Add(tn);
 
-                    if (visited.ParentIndex < 0)
-                        rootNode.Children.Add(node); // Set start node, so we know where to begin
-
-                    level++;
+                    parentNodes.Add(parentNode);
+                    nodelist.Add(parentNode.NodeIndex, parentNode);
                 }
+                currentNodes = parentNodes;
             }
-            return rootNode;
-        }
 
+            return null;
+        }
+        
         public void Query(int issuerIndex, QueryContext context)
         {
             List<QueueItem> queue = new List<QueueItem>();
