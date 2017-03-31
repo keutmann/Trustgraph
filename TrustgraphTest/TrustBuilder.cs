@@ -56,5 +56,13 @@ namespace TrustgraphTest
                     new JProperty("trust", true)
                     );
         }
+
+        public static JObject CreateRating(byte value)
+        {
+            return new JObject(
+                    new JProperty("Rating", value)
+                    );
+        }
+
     }
 }

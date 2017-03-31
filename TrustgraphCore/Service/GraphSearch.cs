@@ -7,6 +7,8 @@ using TrustgraphCore.Model;
 using TrustchainCore.Extensions;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using Newtonsoft.Json;
+using TrustchainCore.Model;
 
 namespace TrustgraphCore.Service
 {
@@ -30,36 +32,21 @@ namespace TrustgraphCore.Service
         public EdgeModel Edge { get; set; }
     }
 
-    public class TreeNode
+    
+    public class TreeNode : SubjectModel
     {
+        [JsonIgnore]
         public int NodeIndex { get; set; }
+
+        [JsonIgnore]
         public int ParentIndex { get; set; }
-        public EdgeModel? Edge;
-        public List<TreeNode> Children = new List<TreeNode>();
 
+        [JsonProperty(PropertyName = "nodes", NullValueHandling = NullValueHandling.Ignore, Order = 100)]
+        public List<TreeNode> Children { get; set; }
 
-        public TreeNode()
+        public TreeNode() : base()
         {
-
         }
-
-        public TreeNode(ResultNode result)
-        {
-            Edge = result.Edge;
-            NodeIndex = result.NodeIndex;
-            ParentIndex = result.ParentIndex;
-        }
-
-        //public TreeNode(EdgeModel? edge)
-        //{
-        //    Edge = edge;
-        //}
-
-        //public TreeNode(EdgeModel? edge, TreeNode child) : this(edge)
-        //{
-        //    Children.Add(child);
-        //}
-            
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -105,12 +92,13 @@ namespace TrustgraphCore.Service
         public int TotalEdgeCount = 0;
         public int MatchEdgeCount = 0;
 
-        public TreeNode Node { get; set; }
+        public List<TreeNode> Nodes { get; set; }
     }
 
 
     public class QueryContext 
     {
+        public int IssuerIndex { get; set; }
         public EdgeModel Query { get; set; }
         public Dictionary<int, VisitItem> Visited { get; set; }
         public List<ResultNode> Results { get; set; }
@@ -144,22 +132,22 @@ namespace TrustgraphCore.Service
 
         public ResultContext Query(GraphQuery query)
         {
-            var issuerIndex = GraphService.Graph.NodeIndex.ContainsKey(query.Issuer) ? GraphService.Graph.NodeIndex[query.Issuer] : -1;
-            if (issuerIndex == -1)
+            var context = new QueryContext(); // Do not return this object, its heavy on memory!
+            context.IssuerIndex = GraphService.Graph.NodeIndex.ContainsKey(query.Issuer) ? GraphService.Graph.NodeIndex[query.Issuer] : -1;
+            if (context.IssuerIndex == -1)
                 throw new ApplicationException("Unknown issuer id");
 
-            var context = new QueryContext(); // Do not return this object, its heavy on memory!
             context.Query = CreateEgdeQuery(query);
             if (context.Query.SubjectId == -1)
                 throw new ApplicationException("Unknown subject id");
 
-            Query(issuerIndex, context);
+            Query(context);
 
             // Create a stripdown version of QueryContext in order to release Query memory when exiting this function
             var result = BuildResultContext(context);
 
             if (context.Results.Count > 0)
-                result.Node = BuildResultNode(context);//result.Node = BuildResultTree(context);
+                result.Nodes = BuildResultNode(context);//result.Node = BuildResultTree(context);
 
             return result;
         }
@@ -175,30 +163,32 @@ namespace TrustgraphCore.Service
             return result;
         }
 
-        public TreeNode BuildResultNode(QueryContext context)
+        public List<TreeNode> BuildResultNode(QueryContext context)
         {
+            var results = new List<TreeNode>();
             var nodelist = new Dictionary<int, TreeNode>();
             var currentNodes = new List<TreeNode>();
             foreach (var item in context.Results)
             {
-                var tn = new TreeNode(item);
+                var tn = new TreeNode();
+                tn.NodeIndex = item.NodeIndex;
+                tn.ParentIndex = item.ParentIndex;
+
+                GraphService.InitSubjectModel(tn, item.Edge);
+
                 nodelist.Add(item.NodeIndex, tn);
                 currentNodes.Add(tn);
             }
 
-            while (currentNodes.Count > 0)
+            while (results.Count == 0)
             {
-                var parentNodes = new List<TreeNode>();
+                var currentLevelNodes = new List<TreeNode>();
                 foreach (var tn in currentNodes)
                 {
-                    if (tn.ParentIndex < 0)
-                        return tn;  // we found the root node!
-
-                    if(tn.Edge == null)
+                    if (tn.NodeIndex == context.IssuerIndex)
                     {
-                        var visited = context.Visited[tn.NodeIndex];
-                        var graphNode = GraphService.Graph.Nodes[tn.ParentIndex];
-                        tn.Edge = graphNode.Edges[visited.EdgeIndex];
+                        results.Add(tn);
+                        continue;
                     }
 
                     if(nodelist.ContainsKey(tn.ParentIndex))
@@ -208,24 +198,33 @@ namespace TrustgraphCore.Service
                         continue;
                     }
 
+                    var visited = context.Visited[tn.NodeIndex];
+                    var graphNode = GraphService.Graph.Nodes[tn.ParentIndex];
+
                     var parentNode = new TreeNode();
                     parentNode.NodeIndex = tn.ParentIndex;
                     parentNode.ParentIndex = context.Visited[tn.ParentIndex].ParentIndex;
+                    
+                    var edge = graphNode.Edges[visited.EdgeIndex];
+                    GraphService.InitSubjectModel(parentNode, edge);
+                    parentNode.Children = new List<TreeNode>();
                     parentNode.Children.Add(tn);
 
-                    parentNodes.Add(parentNode);
+                    currentLevelNodes.Add(parentNode);
                     nodelist.Add(parentNode.NodeIndex, parentNode);
                 }
-                currentNodes = parentNodes;
+                currentNodes = currentLevelNodes;
             }
 
-            return null;
+            return results;
         }
-        
-        public void Query(int issuerIndex, QueryContext context)
+
+
+
+        public void Query(QueryContext context)
         {
             List<QueueItem> queue = new List<QueueItem>();
-            queue.Add(new QueueItem(issuerIndex, -1, -1, 0)); // Starting point!
+            queue.Add(new QueueItem(context.IssuerIndex, -1, -1, 0)); // Starting point!
 
             while (queue.Count > 0 || context.Level > 6)
             {
@@ -263,13 +262,15 @@ namespace TrustgraphCore.Service
                 context.TotalEdgeCount++;
 
                 if (edges[i].SubjectType != context.Query.SubjectType ||
-                    edges[i].Scope != context.Query.Scope ||
-                    (edges[i].Claim.Types & context.Query.Claim.Types) == 0)
+                    edges[i].Scope != context.Query.Scope)
                     continue;
 
                 if (edges[i].Activate > UnixTime ||
                    (edges[i].Expire > 0 && edges[i].Expire < UnixTime))
                     continue;
+
+                if ((edges[i].Claim.Types & context.Query.Claim.Types) == 0)
+                    continue; // No claims match query
 
                 context.MatchEdgeCount++;
 
@@ -296,16 +297,15 @@ namespace TrustgraphCore.Service
             for (var i = 0; i < edges.Length; i++)
             {
                 if (edges[i].SubjectType != context.Query.SubjectType ||
-                    edges[i].Scope != context.Query.Scope ||
-                    (edges[i].Claim.Types & context.Query.Claim.Types) == 0)
-                    continue;
+                    edges[i].Scope != context.Query.Scope)
+                    continue; // Do not follow when Trust do not match scope or SubjectType
 
                 if (edges[i].Activate > UnixTime ||
                     (edges[i].Expire > 0 && edges[i].Expire < UnixTime)) 
-                    continue;
+                    continue; // Do not follow when Trust has not activated or has expired
 
-                if ((edges[i].Claim.Flags & context.Query.Claim.Types) == 0) // The value is false, do not follow!
-                    continue;
+                if ((edges[i].Claim.Flags & ClaimType.Trust) == 0)
+                    continue; // Do not follow when trust is false or do not exist.
 
                 if (context.Visited.ContainsKey(edges[i].SubjectId))
                 {

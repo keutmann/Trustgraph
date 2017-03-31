@@ -8,6 +8,7 @@ using TrustgraphCore.Configuration;
 using TrustgraphCore.Model;
 using TrustchainCore.Extensions;
 using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace TrustgraphCore.Data
 {
@@ -44,6 +45,18 @@ namespace TrustgraphCore.Data
             return edge;
         }
 
+        public void InitSubjectModel(SubjectModel node, EdgeModel edge)
+        {
+            node.Id = Graph.NodeIndexReverse[edge.SubjectId];
+            node.IdType = Graph.SubjectTypesIndexReverse[edge.SubjectType];
+            node.Scope = Graph.ScopeIndexReverse[edge.Scope];
+            node.Activate = edge.Activate;
+            node.Expire = edge.Expire;
+            node.Cost = edge.Cost;
+            node.Timestamp = edge.Timestamp;
+            node.Claim = edge.Claim.ConvertToJObject();
+        }
+
         public int EnsureNode(byte[] id)
         {
             if (Graph.NodeIndex.ContainsKey(id))
@@ -52,7 +65,7 @@ namespace TrustgraphCore.Data
             var index = Graph.Nodes.Count;
             Graph.NodeIndex.Add(id, index);
             Graph.Nodes.Add(new NodeModel());
-            Graph.IdIndex.Add(index, id); // Revert from the internal index to the id address
+            Graph.NodeIndexReverse.Add(index, id); // Revert from the internal index to the id address
 
             return index;
         }
@@ -64,6 +77,7 @@ namespace TrustgraphCore.Data
             {
                 var index = (short)Graph.SubjectTypesIndex.Count;
                 Graph.SubjectTypesIndex.Add(subjectType, index);
+                Graph.SubjectTypesIndexReverse.Add(index, subjectType);
 
                 return index;
             }
@@ -77,6 +91,7 @@ namespace TrustgraphCore.Data
             {
                 var index = Graph.ScopeIndex.Count;
                 Graph.ScopeIndex.Add(scope, index);
+                Graph.ScopeIndexReverse.Add(index, scope);
 
                 return index;
             }

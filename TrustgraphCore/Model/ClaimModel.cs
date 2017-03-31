@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Runtime.InteropServices;
 using TrustchainCore.Extensions;
@@ -43,5 +44,20 @@ namespace TrustgraphCore.Model
             return result;
         }
 
+        public JObject ConvertToJObject()
+        {
+            var result = new JObject();
+
+            if((Types & ClaimType.Trust) != 0)
+                result.Add(new JProperty("trust", (Flags | ClaimType.Trust) != 0));
+
+            if ((Types & ClaimType.Confirm) != 0)
+                result.Add(new JProperty("confirm", (Flags | ClaimType.Confirm) != 0));
+
+            if ((Types & ClaimType.Rating) != 0)
+                result.Add(new JProperty("rating", Rating));
+
+            return result;
+        }
     }
 }
