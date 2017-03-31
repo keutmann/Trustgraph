@@ -32,7 +32,31 @@ namespace TrustgraphCore.Service
         public EdgeModel Edge { get; set; }
     }
 
-    
+    [StructLayout(LayoutKind.Explicit)]
+    public struct Int64ToInt32
+    {
+        [FieldOffset(0)]
+        public Int64 Int64Value;
+        [FieldOffset(0)]
+        public Int32 LeftInt32;
+        [FieldOffset(4)]
+        public Int32 RightInt32;
+
+        public Int64ToInt32(Int64 value)
+        {
+            LeftInt32 = 0;
+            RightInt32 = 0;
+            Int64Value = value;
+        }
+
+        public Int64ToInt32(Int32 left, Int32 right)
+        {
+            Int64Value = 0;
+            LeftInt32 = left;
+            RightInt32 = right;
+        }
+    }
+
     public class TreeNode : SubjectModel
     {
         [JsonIgnore]
@@ -40,6 +64,9 @@ namespace TrustgraphCore.Service
 
         [JsonIgnore]
         public int ParentIndex { get; set; }
+
+        [JsonIgnore]
+        public Int64ToInt32 EdgeIndex { get; set; }
 
         [JsonProperty(PropertyName = "nodes", NullValueHandling = NullValueHandling.Ignore, Order = 100)]
         public List<TreeNode> Children { get; set; }
@@ -166,17 +193,19 @@ namespace TrustgraphCore.Service
         public List<TreeNode> BuildResultNode(QueryContext context)
         {
             var results = new List<TreeNode>();
-            var nodelist = new Dictionary<int, TreeNode>();
+            var nodelist = new Dictionary<Int64ToInt32, TreeNode>();
             var currentNodes = new List<TreeNode>();
             foreach (var item in context.Results)
             {
                 var tn = new TreeNode();
                 tn.NodeIndex = item.NodeIndex;
                 tn.ParentIndex = item.ParentIndex;
+                var visited = context.Visited[tn.NodeIndex];
 
+                tn.EdgeIndex = new Int64ToInt32(item.NodeIndex, visited.EdgeIndex);
                 GraphService.InitSubjectModel(tn, item.Edge);
 
-                nodelist.Add(item.NodeIndex, tn);
+                //nodelist.Add(new Int64ToInt32(item.NodeIndex, 0), tn); // Needed?
                 currentNodes.Add(tn);
             }
 
@@ -191,27 +220,28 @@ namespace TrustgraphCore.Service
                         continue;
                     }
 
-                    if(nodelist.ContainsKey(tn.ParentIndex))
+                    var parentNode = new TreeNode();
+                    parentNode.NodeIndex = tn.ParentIndex;
+
+                    var visited = context.Visited[tn.NodeIndex];
+                    parentNode.ParentIndex = context.Visited[tn.ParentIndex].ParentIndex;
+                    parentNode.EdgeIndex = new Int64ToInt32(parentNode.NodeIndex, visited.EdgeIndex);
+
+                    if (nodelist.ContainsKey(parentNode.EdgeIndex))
                     {
                         // A previouse node in the collection has already created this
-                        nodelist[tn.ParentIndex].Children.Add(tn);
+                        nodelist[parentNode.EdgeIndex].Children.Add(tn);
                         continue;
                     }
 
-                    var visited = context.Visited[tn.NodeIndex];
-                    var graphNode = GraphService.Graph.Nodes[tn.ParentIndex];
-
-                    var parentNode = new TreeNode();
-                    parentNode.NodeIndex = tn.ParentIndex;
-                    parentNode.ParentIndex = context.Visited[tn.ParentIndex].ParentIndex;
-                    
+                    var graphNode = GraphService.Graph.Nodes[parentNode.NodeIndex];
                     var edge = graphNode.Edges[visited.EdgeIndex];
                     GraphService.InitSubjectModel(parentNode, edge);
                     parentNode.Children = new List<TreeNode>();
                     parentNode.Children.Add(tn);
 
                     currentLevelNodes.Add(parentNode);
-                    nodelist.Add(parentNode.NodeIndex, parentNode);
+                    nodelist.Add(parentNode.EdgeIndex, parentNode);
                 }
                 currentNodes = currentLevelNodes;
             }

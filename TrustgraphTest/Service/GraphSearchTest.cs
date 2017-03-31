@@ -110,27 +110,33 @@ namespace TrustgraphTest.Service
         [Test]
         public void SearchRating1()
         {
-            var trust1 = TrustBuilder.CreateTrust("A", "B", TrustBuilder.CreateTrustTrue());
-            var trust2 = TrustBuilder.CreateTrust("B", "C", TrustBuilder.CreateRating(100));
-
             var trusts = new List<TrustModel>();
-            trusts.Add(trust1);
-            trusts.Add(trust2);
-            trusts.Add(TrustBuilder.CreateTrust("A", "E", TrustBuilder.CreateTrustTrue()));
-            trusts.Add(TrustBuilder.CreateTrust("E", "C", TrustBuilder.CreateRating(50)));
 
+            var trustsource = TrustBuilder.CreateTrust("A", "B", TrustBuilder.CreateTrustTrue());
+            trusts.Add(trustsource);
+            trusts.Add(TrustBuilder.CreateTrust("B", "C", TrustBuilder.CreateTrustTrue()));
+            var trusttarget = TrustBuilder.CreateTrust("C", "D", TrustBuilder.CreateRating(100));
+            trusts.Add(trusttarget);
+            trusts.Add(TrustBuilder.CreateTrust("B", "E", TrustBuilder.CreateTrustTrue()));
+            trusts.Add(TrustBuilder.CreateTrust("E", "D", TrustBuilder.CreateRating(50)));
+            trusts.Add(TrustBuilder.CreateTrust("B", "F", TrustBuilder.CreateTrustTrue()));
+            trusts.Add(TrustBuilder.CreateTrust("F", "G", TrustBuilder.CreateTrustTrue()));
+            trusts.Add(TrustBuilder.CreateTrust("G", "D", TrustBuilder.CreateRating(50)));
+            trusts.Add(TrustBuilder.CreateTrust("A", "H", TrustBuilder.CreateTrustTrue()));
+            trusts.Add(TrustBuilder.CreateTrust("H", "G", TrustBuilder.CreateTrustTrue()));
+            trusts.Add(TrustBuilder.CreateTrust("G", "D", TrustBuilder.CreateRating(50)));
 
             var search = BuildSearch(trusts);
             var query = new GraphQuery();
 
             var claim = TrustBuilder.CreateRating(0); // 0 is not used!
 
-            query.Issuer = trust1.Issuer.Id; // From A 
-            query.Subject = trust2.Issuer.Subjects[0].Id;  // To C
-            query.SubjectType = trust2.Issuer.Subjects[0].IdType;
-            query.Scope = trust2.Issuer.Subjects[0].Scope;
-            query.Activate = (int)trust2.Issuer.Subjects[0].Activate;
-            query.Expire = (int)trust2.Issuer.Subjects[0].Expire;
+            query.Issuer = trustsource.Issuer.Id; // From A 
+            query.Subject = trusttarget.Issuer.Subjects[0].Id;  // To D
+            query.SubjectType = trusttarget.Issuer.Subjects[0].IdType;
+            query.Scope = trusttarget.Issuer.Subjects[0].Scope;
+            query.Activate = (int)trusttarget.Issuer.Subjects[0].Activate;
+            query.Expire = (int)trusttarget.Issuer.Subjects[0].Expire;
             query.Claim = claim;
 
             var result = search.Query(query);
