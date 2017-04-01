@@ -97,7 +97,7 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TrustbuildService.cs" />
+    <Compile Include="TrustgraphService.cs" />
     <Compile Include="UnityContainerExtensions.cs" />
     <Compile Include="UnityResolver.cs" />
   </ItemGroup>

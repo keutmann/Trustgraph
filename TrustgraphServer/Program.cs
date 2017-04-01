@@ -51,9 +51,9 @@ namespace TrustgraphServer
                     }
                 configurator.ApplyCommandLine();
 
-                configurator.Service<TrustbuildService>(s =>
+                configurator.Service<TrustgraphService>(s =>
                 {
-                    s.ConstructUsing(() => new TrustbuildService());
+                    s.ConstructUsing(() => new TrustgraphService());
                     s.WhenStarted(service => service.Start());
                     s.WhenPaused(service => service.Pause());
                     s.WhenContinued(service => service.Continue());

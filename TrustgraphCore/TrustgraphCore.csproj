@@ -78,6 +78,8 @@
     <Compile Include="Service\GraphSearch.cs" />
     <Compile Include="Service\IGraphBuilder.cs" />
     <Compile Include="Service\IGraphSearch.cs" />
+    <Compile Include="Service\ITrustLoader.cs" />
+    <Compile Include="Service\TrustLoader.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
