@@ -57,7 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\IOCAttribute.cs" />
-    <Compile Include="Controllers\ResolveController.cs" />
+    <Compile Include="Controllers\QueryController.cs" />
     <Compile Include="Data\GraphContext.cs" />
     <Compile Include="Data\IGraphContext.cs" />
     <Compile Include="IO\BufferingFileSystemWatcher.cs">

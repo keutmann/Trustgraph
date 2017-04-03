@@ -159,6 +159,8 @@ namespace TrustgraphCore.Service
 
         public ResultContext Query(GraphQuery query)
         {
+            Verify(query);
+
             var context = new QueryContext(); // Do not return this object, its heavy on memory!
             context.IssuerIndex = GraphService.Graph.NodeIndex.ContainsKey(query.Issuer) ? GraphService.Graph.NodeIndex[query.Issuer] : -1;
             if (context.IssuerIndex == -1)
@@ -177,6 +179,15 @@ namespace TrustgraphCore.Service
                 result.Nodes = BuildResultNode(context);//result.Node = BuildResultTree(context);
 
             return result;
+        }
+
+        public void Verify(GraphQuery query)
+        {
+            if (query.Issuer.Length != 20)
+                throw new ApplicationException("Invalid byte length on Issuer");
+
+            if (query.Subject.Length != 20)
+                throw new ApplicationException("Invalid byte length on Issuer");
         }
 
         public ResultContext BuildResultContext(QueryContext context)
