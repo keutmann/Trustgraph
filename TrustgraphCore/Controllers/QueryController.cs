@@ -17,36 +17,60 @@ namespace TrustgraphCore.Controllers
             Service = service;
         }
 
-        // GET api/
-        [HttpGet]
-        public IHttpActionResult Get([FromUri]byte[] issuer, byte[] subject, string subjectType, string scope, bool? trust, bool? confirm, bool? rating)
+        // Post api/
+        [HttpPost]
+        public IHttpActionResult ResolvePost([FromBody]GraphQuery query)
         {
             try
             {
-                var query = new GraphQuery();
-                query.Issuer = issuer;
-                query.Subject = subject;
-                query.SubjectType = subjectType;
-                query.Scope = scope;
-                query.Claim = new JObject();
-                if (trust != null)
-                    query.Claim.Add(new JProperty("trust", trust));
-
-                if (confirm != null)
-                    query.Claim.Add(new JProperty("confirm", confirm));
-
-                if (rating != null)
-                    query.Claim.Add(new JProperty("rating", 0));
-
                 var result = Service.Query(query);
 
-                return Ok(JsonConvert.SerializeObject(result));
+                return Ok(result);
             }
             catch (Exception ex)
             {
                 return new ExceptionResult(ex, this);
             }
         }
+
+        // GET api/
+        [HttpGet]
+        public IHttpActionResult Get()
+        {
+            return Ok("OK");
+        }
+
+
+        //// GET api/
+        //[HttpGet]
+        //public IHttpActionResult Get([FromUri]byte[] issuer, byte[] subject, string subjectType, string scope, bool? trust, bool? confirm, bool? rating)
+        //{
+        //    try
+        //    {
+        //        var query = new GraphQuery();
+        //        query.Issuer = issuer;
+        //        query.Subject = subject;
+        //        query.SubjectType = subjectType;
+        //        query.Scope = scope;
+        //        query.Claim = new JObject();
+        //        if (trust != null)
+        //            query.Claim.Add(new JProperty("trust", trust));
+
+        //        if (confirm != null)
+        //            query.Claim.Add(new JProperty("confirm", confirm));
+
+        //        if (rating != null)
+        //            query.Claim.Add(new JProperty("rating", 0));
+
+        //        var result = Service.Query(query);
+
+        //        return Ok(JsonConvert.SerializeObject(result));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ExceptionResult(ex, this);
+        //    }
+        //}
 
     }
 }

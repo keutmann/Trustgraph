@@ -37,6 +37,9 @@ namespace TrustgraphTest.Service
             query.Expire = (int)trust.Issuer.Subjects[0].Expire;
             query.Claim = trust.Issuer.Subjects[0].Claim;
 
+            var json = JsonConvert.SerializeObject(query, Formatting.Indented);
+            Console.WriteLine(json);
+
             var result = search.Query(query);
             Assert.NotNull(result.Nodes);
             PrintResult(result.Nodes, search.GraphService, 1);
@@ -47,6 +50,10 @@ namespace TrustgraphTest.Service
         {
             var trust1 = TrustBuilder.CreateTrust("A", "B", TrustBuilder.CreateTrustTrue());
             var trust2 = TrustBuilder.CreateTrust("B", "C", TrustBuilder.CreateTrustTrue());
+
+            var sb = new StringBuilder();
+            sb.Append("/api/query/");
+
             var trusts = new List<TrustModel>();
             trusts.Add(trust1);
             trusts.Add(trust2);
@@ -62,12 +69,15 @@ namespace TrustgraphTest.Service
             query.Expire = (int)trust2.Issuer.Subjects[0].Expire;
             query.Claim = trust2.Issuer.Subjects[0].Claim;
 
+            var json = JsonConvert.SerializeObject(query, Formatting.Indented);
+            Console.WriteLine(json);
+            
             var result = search.Query(query);
             Assert.NotNull(result.Nodes);
 
             //Console.WriteLine("Start id: "+search.GraphService.Graph.IdIndex[0].ConvertToHex()); // A
             PrintResult(result.Nodes, search.GraphService, 1);
-
+            PrintJson(result.Nodes);
         }
 
         [Test]

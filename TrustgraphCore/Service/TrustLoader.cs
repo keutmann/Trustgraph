@@ -26,10 +26,10 @@ namespace TrustgraphCore.Service
             IEnumerable<TrustModel> trusts = null;
             var info = new FileInfo(filename);
 
-            if ("json".EqualsIgnoreCase(info.Extension))
+            if (".json".EqualsIgnoreCase(info.Extension))
                 trusts = LoadJson(info);
             else
-                if("db".EqualsIgnoreCase(info.Extension))
+                if(".db".EqualsIgnoreCase(info.Extension))
                 trusts = LoadSQLite(info);
 
             Builder.Build(trusts);
@@ -39,7 +39,12 @@ namespace TrustgraphCore.Service
         {
             using (var db = TrustchainDatabase.Open(info.FullName))
             {
-                return db.Trust.Select();
+                var trusts = db.Trust.Select();
+                foreach (var trust in trusts)
+                {
+                    trust.Issuer.Subjects = db.Subject.Select(trust.TrustId).ToArray();
+                }
+                return trusts;
             }
         }
 

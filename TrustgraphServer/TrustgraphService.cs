@@ -115,13 +115,14 @@ namespace TrustgraphServer
             if (e.ChangeType == WatcherChangeTypes.Deleted || e.ChangeType == WatcherChangeTypes.Renamed)
                 return;
 
+            Console.WriteLine("Loading "+ e.Name);
             var loader = UnitySingleton.Container.Resolve<ITrustLoader>();
-            loader.LoadFile(e.FullPath);
+            loader.LoadFile(e.Name); // e.FullPath bug?!
         }
 
         private void _watcher_Error(object sender, FileWatcherErrorEventArgs e)
         {
-            Console.Error.WriteLine("e.Error.Message");
+            Console.Error.WriteLine(e.Error.Message);
             e.Handled = true;
         }
 
