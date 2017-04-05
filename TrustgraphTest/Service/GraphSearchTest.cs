@@ -159,13 +159,13 @@ namespace TrustgraphTest.Service
             PrintJson(result.Nodes);
         }
 
-        private void PrintJson(List<TreeNode> nodes)
+        private void PrintJson(List<SubjectNode> nodes)
         {
             var json = JsonConvert.SerializeObject(nodes, Formatting.Indented);
             Console.WriteLine(json);
         }
 
-        private void PrintResult(List<TreeNode> nodes, IGraphContext service, int level)
+        private void PrintResult(List<SubjectNode> nodes, IGraphContext service, int level)
         {
             foreach (var node in nodes)
             {
@@ -173,7 +173,7 @@ namespace TrustgraphTest.Service
             }
         }
 
-        private void PrintResult(TreeNode node, IGraphContext service, int level)
+        private void PrintResult(SubjectNode node, IGraphContext service, int level)
         {
             if (node.Children == null)
             {

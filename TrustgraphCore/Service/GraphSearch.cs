@@ -1,151 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using TrustgraphCore.Data;
 using TrustgraphCore.Model;
 using TrustchainCore.Extensions;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using Newtonsoft.Json;
-using TrustchainCore.Model;
 
 namespace TrustgraphCore.Service
 {
-
-    public class GraphQuery
-    {
-        public byte[] Issuer;
-        public byte[] Subject;
-        public string SubjectType;
-        public string Scope;
-        public int Activate;
-        public int Expire;
-        public JObject Claim;
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public class ResultNode
-    {
-        public int NodeIndex { get; set; }
-        public int ParentIndex { get; set; }
-        public EdgeModel Edge { get; set; }
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    public struct Int64ToInt32
-    {
-        [FieldOffset(0)]
-        public Int64 Int64Value;
-        [FieldOffset(0)]
-        public Int32 LeftInt32;
-        [FieldOffset(4)]
-        public Int32 RightInt32;
-
-        public Int64ToInt32(Int64 value)
-        {
-            LeftInt32 = 0;
-            RightInt32 = 0;
-            Int64Value = value;
-        }
-
-        public Int64ToInt32(Int32 left, Int32 right)
-        {
-            Int64Value = 0;
-            LeftInt32 = left;
-            RightInt32 = right;
-        }
-    }
-
-    public class TreeNode : SubjectModel
-    {
-        [JsonIgnore]
-        public int NodeIndex { get; set; }
-
-        [JsonIgnore]
-        public int ParentIndex { get; set; }
-
-        [JsonIgnore]
-        public Int64ToInt32 EdgeIndex { get; set; }
-
-        [JsonProperty(PropertyName = "nodes", NullValueHandling = NullValueHandling.Ignore, Order = 100)]
-        public List<TreeNode> Children { get; set; }
-
-        public TreeNode() : base()
-        {
-        }
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct VisitItem
-    {
-        public int ParentIndex;
-        public int EdgeIndex;
-        public int Cost;
-
-        public VisitItem(int parentIndex, int edgeIndex, int cost)
-        {
-            ParentIndex = parentIndex;
-            EdgeIndex = edgeIndex;
-            Cost = cost;
-        }
-    }
-
-
-
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct QueueItem 
-    {
-        public int Index;
-        public int ParentIndex;
-        public int EdgeIndex;
-        public int Cost;
-
-        public QueueItem(int index, int parentIndex, int edgeIndex, int cost)
-        {
-            Index = index;
-            ParentIndex = parentIndex;
-            EdgeIndex = edgeIndex;
-            Cost = cost;
-        }
-    }
-
-    /// <summary>
-    /// The result of the query
-    /// </summary>
-    public class ResultContext
-    {
-        public int TotalNodeCount = 0;
-        public int TotalEdgeCount = 0;
-        public int MatchEdgeCount = 0;
-
-        public List<TreeNode> Nodes { get; set; }
-    }
-
-
-    public class QueryContext 
-    {
-        public int IssuerIndex { get; set; }
-        public EdgeModel Query { get; set; }
-        public Dictionary<int, VisitItem> Visited { get; set; }
-        public List<ResultNode> Results { get; set; }
-        public int MaxCost { get; set; }
-        public int Level { get; set; }
-        public int MaxLevel { get; set; }
-        public int TotalNodeCount = 0;
-        public int TotalEdgeCount = 0;
-        public int MatchEdgeCount = 0;
-
-        public QueryContext()
-        {
-            Visited = new Dictionary<int, VisitItem>();
-            MaxCost = 600; // About 6 levels down
-            Results = new List<ResultNode>();
-            MaxLevel = 7;
-        }
-    }
-
-
     public class GraphSearch : IGraphSearch
     {
         public IGraphContext GraphService { get; set; }
@@ -201,19 +61,19 @@ namespace TrustgraphCore.Service
             return result;
         }
 
-        public List<TreeNode> BuildResultNode(QueryContext context)
+        public List<SubjectNode> BuildResultNode(QueryContext context)
         {
-            var results = new List<TreeNode>();
-            var nodelist = new Dictionary<Int64ToInt32, TreeNode>();
-            var currentNodes = new List<TreeNode>();
+            var results = new List<SubjectNode>();
+            var nodelist = new Dictionary<Int64Container, SubjectNode>();
+            var currentNodes = new List<SubjectNode>();
             foreach (var item in context.Results)
             {
-                var tn = new TreeNode();
+                var tn = new SubjectNode();
                 tn.NodeIndex = item.NodeIndex;
                 tn.ParentIndex = item.ParentIndex;
                 var visited = context.Visited[tn.NodeIndex];
 
-                tn.EdgeIndex = new Int64ToInt32(item.NodeIndex, visited.EdgeIndex);
+                tn.EdgeIndex = new Int64Container(item.NodeIndex, visited.EdgeIndex);
                 GraphService.InitSubjectModel(tn, item.Edge);
 
                 //nodelist.Add(new Int64ToInt32(item.NodeIndex, 0), tn); // Needed?
@@ -222,7 +82,7 @@ namespace TrustgraphCore.Service
 
             while (results.Count == 0)
             {
-                var currentLevelNodes = new List<TreeNode>();
+                var currentLevelNodes = new List<SubjectNode>();
                 foreach (var tn in currentNodes)
                 {
                     if (tn.NodeIndex == context.IssuerIndex)
@@ -231,12 +91,12 @@ namespace TrustgraphCore.Service
                         continue;
                     }
 
-                    var parentNode = new TreeNode();
+                    var parentNode = new SubjectNode();
                     parentNode.NodeIndex = tn.ParentIndex;
 
                     var visited = context.Visited[tn.NodeIndex];
                     parentNode.ParentIndex = context.Visited[tn.ParentIndex].ParentIndex;
-                    parentNode.EdgeIndex = new Int64ToInt32(parentNode.NodeIndex, visited.EdgeIndex);
+                    parentNode.EdgeIndex = new Int64Container(parentNode.NodeIndex, visited.EdgeIndex);
 
                     if (nodelist.ContainsKey(parentNode.EdgeIndex))
                     {
@@ -248,7 +108,7 @@ namespace TrustgraphCore.Service
                     var graphNode = GraphService.Graph.Nodes[parentNode.NodeIndex];
                     var edge = graphNode.Edges[visited.EdgeIndex];
                     GraphService.InitSubjectModel(parentNode, edge);
-                    parentNode.Children = new List<TreeNode>();
+                    parentNode.Children = new List<SubjectNode>();
                     parentNode.Children.Add(tn);
 
                     currentLevelNodes.Add(parentNode);

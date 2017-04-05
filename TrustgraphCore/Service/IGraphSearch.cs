@@ -1,4 +1,5 @@
 ﻿using TrustgraphCore.Data;
+using TrustgraphCore.Model;
 
 namespace TrustgraphCore.Service
 {
@@ -7,5 +8,6 @@ namespace TrustgraphCore.Service
         IGraphContext GraphService { get; set; }
 
         ResultContext Query(GraphQuery query);
+        ResultContext BuildResultContext(QueryContext context);
     }
 }

@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Web.Http;
 using System.Web.Http.Results;
+using TrustgraphCore.Model;
 using TrustgraphCore.Service;
 
 namespace TrustgraphCore.Controllers
