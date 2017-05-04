@@ -8,8 +8,8 @@ namespace TrustgraphCore.Model
     {
         public Int32 SubjectType; // Use lookup table to handle subject type
         public Int32 SubjectId; // The type of the subject
-        public Int32 Activate; // When to begin consider the trust
-        public Int32 Expire;    // When the trust expire
+        public UInt32 Activate; // When to begin consider the trust
+        public UInt32 Expire;    // When the trust expire
         public short Cost;  // cost of following the trust, lower the better
         public Int32 Scope; // scope of the trust
         public Int32 Timestamp; // The timestamp of the trust

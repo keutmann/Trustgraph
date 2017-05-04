@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Owin;
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Reflection;
@@ -53,9 +54,11 @@ namespace TrustgraphServer
     {
         public void Configuration(IAppBuilder appBuilder)
         {
+            HttpListener listener = (HttpListener)appBuilder.Properties["System.Net.HttpListener"];
+            listener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
+
             var config = new HttpConfiguration();
             config.Formatters.Add(new BrowserJsonFormatter());
-
             config.DependencyResolver = new UnityResolver(UnitySingleton.Container);
 
             config.Routes.MapHttpRoute(
@@ -67,7 +70,6 @@ namespace TrustgraphServer
             appBuilder.UseWebApi(config);
         }
     }
-
 
     public class TrustgraphService
     {
@@ -81,7 +83,7 @@ namespace TrustgraphServer
             var asm = new Assembly[] { typeof(IOCAttribute).Assembly };
             UnitySingleton.Container.RegisterTypesFromAssemblies(asm);
 
-            var url = "http://" + App.Config["endpoint"].ToStringValue("localhost") + ":" + App.Config["port"].ToInteger(12702)+ "/";
+            var url = "https://" + App.Config["endpoint"].ToStringValue("+") + ":" + App.Config["port"].ToInteger(12702)+ "/";
             _webApp = WebApp.Start<StartOwin>(url);
 
             //timeInMs = App.Config["processinterval"].ToInteger(timeInMs);

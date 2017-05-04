@@ -36,8 +36,8 @@ namespace TrustgraphCore.Data
             edge.SubjectId = EnsureNode(subject.Id);
             edge.SubjectType = EnsureSubjectType(subject.IdType);
             edge.Scope = EnsureScopeIndex(subject.Scope);
-            edge.Activate = (int)subject.Activate;
-            edge.Expire = (int)subject.Expire;
+            edge.Activate = subject.Activate;
+            edge.Expire = subject.Expire;
             edge.Cost = (short)subject.Cost;
             edge.Timestamp = timestamp;
             edge.Claim = ClaimStandardModel.Parse(subject.Claim);

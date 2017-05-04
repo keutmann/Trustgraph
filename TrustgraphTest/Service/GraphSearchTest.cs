@@ -33,8 +33,8 @@ namespace TrustgraphTest.Service
             query.Subject = trust.Issuer.Subjects[0].Id;
             query.SubjectType = trust.Issuer.Subjects[0].IdType;
             query.Scope = trust.Issuer.Subjects[0].Scope;
-            query.Activate = (int)trust.Issuer.Subjects[0].Activate;
-            query.Expire = (int)trust.Issuer.Subjects[0].Expire;
+            query.Activate = trust.Issuer.Subjects[0].Activate;
+            query.Expire = trust.Issuer.Subjects[0].Expire;
             query.Claim = trust.Issuer.Subjects[0].Claim;
 
             var json = JsonConvert.SerializeObject(query, Formatting.Indented);
@@ -65,8 +65,8 @@ namespace TrustgraphTest.Service
             query.Subject = trust2.Issuer.Subjects[0].Id;  // To C
             query.SubjectType = trust2.Issuer.Subjects[0].IdType;
             query.Scope = trust2.Issuer.Subjects[0].Scope;
-            query.Activate = (int)trust2.Issuer.Subjects[0].Activate;
-            query.Expire = (int)trust2.Issuer.Subjects[0].Expire;
+            query.Activate = trust2.Issuer.Subjects[0].Activate;
+            query.Expire = trust2.Issuer.Subjects[0].Expire;
             query.Claim = trust2.Issuer.Subjects[0].Claim;
 
             var json = JsonConvert.SerializeObject(query, Formatting.Indented);
@@ -104,8 +104,8 @@ namespace TrustgraphTest.Service
             query.Subject = trust3.Issuer.Subjects[0].Id;  // To C
             query.SubjectType = trust2.Issuer.Subjects[0].IdType;
             query.Scope = trust2.Issuer.Subjects[0].Scope;
-            query.Activate = (int)trust2.Issuer.Subjects[0].Activate;
-            query.Expire = (int)trust2.Issuer.Subjects[0].Expire;
+            query.Activate = trust2.Issuer.Subjects[0].Activate;
+            query.Expire = trust2.Issuer.Subjects[0].Expire;
             query.Claim = trust2.Issuer.Subjects[0].Claim;
 
             var result = search.Query(query);
@@ -145,8 +145,8 @@ namespace TrustgraphTest.Service
             query.Subject = trusttarget.Issuer.Subjects[0].Id;  // To D
             query.SubjectType = trusttarget.Issuer.Subjects[0].IdType;
             query.Scope = trusttarget.Issuer.Subjects[0].Scope;
-            query.Activate = (int)trusttarget.Issuer.Subjects[0].Activate;
-            query.Expire = (int)trusttarget.Issuer.Subjects[0].Expire;
+            query.Activate = trusttarget.Issuer.Subjects[0].Activate;
+            query.Expire = trusttarget.Issuer.Subjects[0].Expire;
             query.Claim = claim;
 
             var result = search.Query(query);

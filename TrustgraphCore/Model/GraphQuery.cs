@@ -8,8 +8,8 @@ namespace TrustgraphCore.Model
         public byte[] Subject;
         public string SubjectType;
         public string Scope;
-        public int Activate;
-        public int Expire;
+        public uint Activate;
+        public uint Expire;
         public JObject Claim;
     }
 }

@@ -39,8 +39,8 @@ namespace TrustgraphTest.Service
         public void BuildEdge1()
         {
             var trust = TrustBuilder.CreateTrust("A", "B", TrustBuilder.CreateTrustTrue());
-            trust.Issuer.Subjects[0].Activate = DateTime.Now.AddDays(1).UnixTimestamp();
-            trust.Issuer.Subjects[0].Expire = DateTime.Now.AddDays(-1).UnixTimestamp();
+            trust.Issuer.Subjects[0].Activate = (uint)DateTime.Now.AddDays(1).UnixTimestamp();
+            trust.Issuer.Subjects[0].Expire = (uint)DateTime.Now.AddDays(-1).UnixTimestamp();
             trust.Issuer.Subjects[0].Cost = 112;
 
             var trusts = new List<TrustModel>();
