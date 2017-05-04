@@ -83,8 +83,11 @@ namespace TrustgraphServer
             var asm = new Assembly[] { typeof(IOCAttribute).Assembly };
             UnitySingleton.Container.RegisterTypesFromAssemblies(asm);
 
-            var url = "https://" + App.Config["endpoint"].ToStringValue("+") + ":" + App.Config["port"].ToInteger(12702)+ "/";
-            _webApp = WebApp.Start<StartOwin>(url);
+            var start = new StartOptions();
+            start.Urls.Add("http://" + App.Config["endpoint"].ToStringValue("+") + ":" + App.Config["port"].ToInteger(12802) + "/");
+            start.Urls.Add("https://" + App.Config["endpoint"].ToStringValue("+") + ":" + App.Config["sslport"].ToInteger(12702) + "/");
+
+            _webApp = WebApp.Start<StartOwin>(start);
 
             //timeInMs = App.Config["processinterval"].ToInteger(timeInMs);
             _watcher = StartWatcher();
