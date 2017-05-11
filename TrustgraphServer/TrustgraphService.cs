@@ -12,7 +12,7 @@ using System.Web.Http;
 using TrustchainCore.Business;
 using TrustchainCore.Configuration;
 using TrustchainCore.Extensions;
-using TrustgraphCore.Configuration;
+using TrustchainCore.IOC;
 using TrustgraphCore.IO;
 using TrustgraphCore.Service;
 

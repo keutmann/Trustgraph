@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TrustchainCore.Model;
-using TrustgraphCore.Configuration;
 using TrustgraphCore.Model;
 using TrustchainCore.Extensions;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using TrustchainCore.IOC;
 
 namespace TrustgraphCore.Data
 {
