@@ -101,11 +101,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BrowserJsonFormatter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StartOwin.cs" />
     <Compile Include="TrustgraphService.cs" />
     <Compile Include="UnityContainerExtensions.cs" />
     <Compile Include="UnityResolver.cs" />
+    <Compile Include="UnitySingleton.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

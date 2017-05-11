@@ -18,59 +18,6 @@ using TrustgraphCore.Service;
 
 namespace TrustgraphServer
 {
-    public class BrowserJsonFormatter : JsonMediaTypeFormatter
-    {
-        public BrowserJsonFormatter()
-        {
-            this.SupportedMediaTypes.Add(new MediaTypeHeaderValue("text/html"));
-            this.SerializerSettings.Formatting = Formatting.Indented;
-        }
-
-        public override void SetDefaultContentHeaders(Type type, HttpContentHeaders headers, MediaTypeHeaderValue mediaType)
-        {
-            base.SetDefaultContentHeaders(type, headers, mediaType);
-            headers.ContentType = new MediaTypeHeaderValue("application/json");
-        }
-    }
-
-
-    public sealed class UnitySingleton
-    {
-        private static readonly UnityContainer instance = new UnityContainer();
-
-        private UnitySingleton() { }
-
-        public static UnityContainer Container
-        {
-            get
-            {
-                return instance;
-            }
-        }
-    }
-
-
-    public class StartOwin
-    {
-        public void Configuration(IAppBuilder appBuilder)
-        {
-            HttpListener listener = (HttpListener)appBuilder.Properties["System.Net.HttpListener"];
-            listener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
-
-            var config = new HttpConfiguration();
-            config.Formatters.Add(new BrowserJsonFormatter());
-            config.DependencyResolver = new UnityResolver(UnitySingleton.Container);
-
-            config.Routes.MapHttpRoute(
-                name: "DefaultApi",
-                routeTemplate: "api/{controller}/{id}",
-                defaults: new { id = RouteParameter.Optional }
-                );
-
-            appBuilder.UseWebApi(config);
-        }
-    }
-
     public class TrustgraphService
     {
         private IDisposable _webApp;
