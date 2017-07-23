@@ -24,13 +24,13 @@ namespace TrustgraphTest.Service
             var keyB = new Key(Hashes.SHA256(Encoding.UTF8.GetBytes("B"))).PubKey.GetAddress(Network.TestNet).Hash.ToBytes();
 
             var graphService = new GraphContext();
-            graphService.Graph.NodeIndex.Add(keyA, 0);
-            graphService.Graph.NodeIndex.Add(keyB, 1);
+            graphService.Graph.AddressIndex.Add(keyA, 0);
+            graphService.Graph.AddressIndex.Add(keyB, 1);
 
-            Assert.IsTrue(graphService.Graph.NodeIndex.ContainsKey(keyA));
-            Assert.IsTrue(graphService.Graph.NodeIndex.ContainsKey(keyB));
-            Assert.IsTrue(graphService.Graph.NodeIndex[keyA] == 0);
-            Assert.IsTrue(graphService.Graph.NodeIndex[keyB] == 1);
+            Assert.IsTrue(graphService.Graph.AddressIndex.ContainsKey(keyA));
+            Assert.IsTrue(graphService.Graph.AddressIndex.ContainsKey(keyB));
+            Assert.IsTrue(graphService.Graph.AddressIndex[keyA] == 0);
+            Assert.IsTrue(graphService.Graph.AddressIndex[keyB] == 1);
         }
 
 
@@ -50,16 +50,16 @@ namespace TrustgraphTest.Service
 
             builder.Build(trusts);
 
-            Assert.IsTrue(graphService.Graph.Nodes.Count == 2);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges.Length == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Claim.Types == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].SubjectId == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Cost == trust.Issuer.Subjects[0].Cost);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Activate == trust.Issuer.Subjects[0].Activate);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Expire == trust.Issuer.Subjects[0].Expire);
+            Assert.IsTrue(graphService.Graph.Address.Count == 2);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges.Length == 1);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].Claim.Types == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].SubjectId == 1);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].Cost == trust.Issuer.Subjects[0].Cost);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].Activate == trust.Issuer.Subjects[0].Activate);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].Expire == trust.Issuer.Subjects[0].Expire);
 
-            Assert.IsTrue(graphService.Graph.NodeIndex.Count == 2);
+            Assert.IsTrue(graphService.Graph.AddressIndex.Count == 2);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.Count == 2);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.ContainsKey("person"));
             Assert.IsTrue(graphService.Graph.ScopeIndex.Count == 2);
@@ -80,16 +80,16 @@ namespace TrustgraphTest.Service
 
             builder.Build(trusts);
 
-            Assert.IsTrue(graphService.Graph.Nodes.Count == 3);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges.Length == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].SubjectId == 1);
+            Assert.IsTrue(graphService.Graph.Address.Count == 3);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges.Length == 1);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].SubjectId == 1);
 
-            Assert.IsTrue(graphService.Graph.Nodes[1].Edges.Length == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[1].Edges[0].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[1].Edges[0].SubjectId == 2);
+            Assert.IsTrue(graphService.Graph.Address[1].Edges.Length == 1);
+            Assert.IsTrue(graphService.Graph.Address[1].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[1].Edges[0].SubjectId == 2);
 
-            Assert.IsTrue(graphService.Graph.NodeIndex.Count == 3);
+            Assert.IsTrue(graphService.Graph.AddressIndex.Count == 3);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.Count == 2);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.ContainsKey("person"));
             Assert.IsTrue(graphService.Graph.ScopeIndex.Count == 2);
@@ -108,22 +108,22 @@ namespace TrustgraphTest.Service
 
             builder.Build(trusts);
 
-            Assert.IsTrue(graphService.Graph.Nodes.Count == 3);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges.Length == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].SubjectId == 1);
+            Assert.IsTrue(graphService.Graph.Address.Count == 3);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges.Length == 1);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].SubjectId == 1);
 
-            Assert.IsTrue(graphService.Graph.Nodes[1].Edges.Length == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[1].Edges[0].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[1].Edges[0].SubjectId == 2);
-
-
-            Assert.IsTrue(graphService.Graph.Nodes[2].Edges.Length == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[2].Edges[0].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[2].Edges[0].SubjectId == 0);
+            Assert.IsTrue(graphService.Graph.Address[1].Edges.Length == 1);
+            Assert.IsTrue(graphService.Graph.Address[1].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[1].Edges[0].SubjectId == 2);
 
 
-            Assert.IsTrue(graphService.Graph.NodeIndex.Count == 3);
+            Assert.IsTrue(graphService.Graph.Address[2].Edges.Length == 1);
+            Assert.IsTrue(graphService.Graph.Address[2].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[2].Edges[0].SubjectId == 0);
+
+
+            Assert.IsTrue(graphService.Graph.AddressIndex.Count == 3);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.Count == 2);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.ContainsKey("person"));
             Assert.IsTrue(graphService.Graph.ScopeIndex.Count == 2);
@@ -143,23 +143,23 @@ namespace TrustgraphTest.Service
 
             builder.Build(trusts);
 
-            Assert.IsTrue(graphService.Graph.Nodes.Count == 3);
+            Assert.IsTrue(graphService.Graph.Address.Count == 3);
 
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges.Length == 2);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].SubjectId == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[1].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[1].SubjectId == 2);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges.Length == 2);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].SubjectId == 1);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[1].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[1].SubjectId == 2);
 
-            Assert.IsTrue(graphService.Graph.Nodes[1].Edges.Length == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[1].Edges[0].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[1].Edges[0].SubjectId == 2);
+            Assert.IsTrue(graphService.Graph.Address[1].Edges.Length == 1);
+            Assert.IsTrue(graphService.Graph.Address[1].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[1].Edges[0].SubjectId == 2);
 
-            Assert.IsTrue(graphService.Graph.Nodes[2].Edges.Length == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[2].Edges[0].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[2].Edges[0].SubjectId == 0);
+            Assert.IsTrue(graphService.Graph.Address[2].Edges.Length == 1);
+            Assert.IsTrue(graphService.Graph.Address[2].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[2].Edges[0].SubjectId == 0);
 
-            Assert.IsTrue(graphService.Graph.NodeIndex.Count == 3);
+            Assert.IsTrue(graphService.Graph.AddressIndex.Count == 3);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.Count == 2);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.ContainsKey("person"));
             Assert.IsTrue(graphService.Graph.ScopeIndex.Count == 2);
@@ -180,23 +180,23 @@ namespace TrustgraphTest.Service
 
             builder.Build(trusts);
 
-            Assert.IsTrue(graphService.Graph.Nodes.Count == 5);
+            Assert.IsTrue(graphService.Graph.Address.Count == 5);
 
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges.Length == 2);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[0].SubjectId == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[1].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[0].Edges[1].SubjectId == 2);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges.Length == 2);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[0].SubjectId == 1);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[1].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[0].Edges[1].SubjectId == 2);
 
-            Assert.IsTrue(graphService.Graph.Nodes[1].Edges.Length == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[1].Edges[0].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[1].Edges[0].SubjectId == 2);
+            Assert.IsTrue(graphService.Graph.Address[1].Edges.Length == 1);
+            Assert.IsTrue(graphService.Graph.Address[1].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[1].Edges[0].SubjectId == 2);
 
-            Assert.IsTrue(graphService.Graph.Nodes[2].Edges.Length == 1);
-            Assert.IsTrue(graphService.Graph.Nodes[2].Edges[0].Claim.Flags == ClaimType.Trust);
-            Assert.IsTrue(graphService.Graph.Nodes[2].Edges[0].SubjectId == 0);
+            Assert.IsTrue(graphService.Graph.Address[2].Edges.Length == 1);
+            Assert.IsTrue(graphService.Graph.Address[2].Edges[0].Claim.Flags == ClaimType.Trust);
+            Assert.IsTrue(graphService.Graph.Address[2].Edges[0].SubjectId == 0);
 
-            Assert.IsTrue(graphService.Graph.NodeIndex.Count == 5);
+            Assert.IsTrue(graphService.Graph.AddressIndex.Count == 5);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.Count == 2);
             Assert.IsTrue(graphService.Graph.SubjectTypesIndex.ContainsKey("person"));
             Assert.IsTrue(graphService.Graph.ScopeIndex.Count == 2);

@@ -7,9 +7,9 @@ namespace TrustgraphCore.Model
 {
     public class GraphModel
     {
-        public List<NodeModel> Nodes = new List<NodeModel>();
-        public Dictionary<byte[], int> NodeIndex = new Dictionary<byte[], int>(new ByteArrayComparer());
-        public Dictionary<int, byte[]> NodeIndexReverse = new Dictionary<int, byte[]>();
+        
+        public List<AddressModel> Address = new List<AddressModel>();
+        public Dictionary<byte[], int> AddressIndex = new Dictionary<byte[], int>(ByteComparer.Standard);
 
         public Dictionary<string, int> SubjectTypesIndex = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<int, string> SubjectTypesIndexReverse = new Dictionary<int, string>();

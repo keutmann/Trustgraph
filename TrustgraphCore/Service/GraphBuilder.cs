@@ -23,7 +23,7 @@ namespace TrustgraphCore.Service
             foreach (var trust in trusts)
             {
                 var issuerIndex = Context.EnsureNode(trust.Issuer.Id);
-                var issuerNode = Context.Graph.Nodes[issuerIndex];
+                var issuerNode = Context.Graph.Address[issuerIndex];
                 var issuerEdges = new List<EdgeModel>(issuerNode.Edges != null ? issuerNode.Edges : new EdgeModel[0]);
 
                 foreach (var subject in trust.Issuer.Subjects)
@@ -35,7 +35,7 @@ namespace TrustgraphCore.Service
                 issuerEdges.RemoveAll(e => e.Expire > 0 && e.Expire < unixTime);
 
                 issuerNode.Edges = issuerEdges.ToArray();
-                Context.Graph.Nodes[issuerIndex] = issuerNode;
+                Context.Graph.Address[issuerIndex] = issuerNode;
             }
         }
 

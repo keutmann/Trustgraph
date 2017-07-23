@@ -79,7 +79,7 @@
     <Compile Include="Model\GraphModel.cs" />
     <Compile Include="Model\GraphQuery.cs" />
     <Compile Include="Model\Int64Container.cs" />
-    <Compile Include="Model\NodeModel.cs" />
+    <Compile Include="Model\AddressModel.cs" />
     <Compile Include="Model\QueryContext.cs" />
     <Compile Include="Model\QueueItem.cs" />
     <Compile Include="Model\ResultContext.cs" />

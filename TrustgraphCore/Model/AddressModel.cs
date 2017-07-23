@@ -3,8 +3,9 @@
 namespace TrustgraphCore.Model
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct NodeModel
+    public struct AddressModel
     {
+        public byte[] Id;
         public EdgeModel[] Edges;
     }
 }

@@ -21,8 +21,8 @@ namespace TrustgraphCore.Service
         {
             Verify(query);
 
-            var context = new QueryContext(); // Do not return this object, its heavy on memory!
-            context.IssuerIndex = GraphService.Graph.NodeIndex.ContainsKey(query.Issuer) ? GraphService.Graph.NodeIndex[query.Issuer] : -1;
+            var context = new QueryContext(GraphService.Graph.Address.Count); // Do not return this object, its heavy on memory!
+            context.IssuerIndex = GraphService.Graph.AddressIndex.ContainsKey(query.Issuer) ? GraphService.Graph.AddressIndex[query.Issuer] : -1;
             if (context.IssuerIndex == -1)
                 throw new ApplicationException("Unknown issuer id");
 
@@ -105,8 +105,8 @@ namespace TrustgraphCore.Service
                         continue;
                     }
 
-                    var graphNode = GraphService.Graph.Nodes[parentNode.NodeIndex];
-                    var edge = graphNode.Edges[visited.EdgeIndex];
+                    var address = GraphService.Graph.Address[parentNode.NodeIndex];
+                    var edge = address.Edges[visited.EdgeIndex];
                     GraphService.InitSubjectModel(parentNode, edge);
                     parentNode.Children = new List<SubjectNode>();
                     parentNode.Children.Add(tn);
@@ -153,10 +153,10 @@ namespace TrustgraphCore.Service
         private bool PeekNode(QueueItem item, QueryContext context)
         {
 
-            context.Visited.Add(item.Index, 
-                new VisitItem(item.ParentIndex, item.EdgeIndex, item.Cost)); // Makes sure that we do not run this block again.
-
-            var edges = GraphService.Graph.Nodes[item.Index].Edges;
+            //context.Visited.Add(item.Index, 
+            //    new VisitItem(item.ParentIndex, item.EdgeIndex, item.Cost)); // Makes sure that we do not run this block again.
+            context.Visited[item.Index] = new VisitItem(item.ParentIndex, item.EdgeIndex); // Makes sure that we do not run this block again.
+            var edges = GraphService.Graph.Address[item.Index].Edges;
 
             for (var i = 0; i < edges.Length; i++)
             {
@@ -192,7 +192,7 @@ namespace TrustgraphCore.Service
         public List<QueueItem> Enqueue(QueueItem item, QueryContext context)
         {
             var list = new List<QueueItem>();
-            var node = GraphService.Graph.Nodes[item.Index];
+            var node = GraphService.Graph.Address[item.Index];
 
             var edges = node.Edges;
             for (var i = 0; i < edges.Length; i++)
@@ -208,11 +208,13 @@ namespace TrustgraphCore.Service
                 if ((edges[i].Claim.Flags & ClaimType.Trust) == 0)
                     continue; // Do not follow when trust is false or do not exist.
 
-                if (context.Visited.ContainsKey(edges[i].SubjectId))
+                var visited = context.Visited[edges[i].SubjectId];
+                if(visited.ParentIndex > -1) // If parentIndex is -1 then it has not been used yet!
                 {
-                    var visited = context.Visited[edges[i].SubjectId];
-                    if(visited.Cost > edges[i].Cost) // If the current cost is lower then its a better route.
-                        context.Visited[edges[i].SubjectId] = new VisitItem(item.Index, i, edges[i].Cost); // Overwrite the old visit with the new because of lower cost
+                    var parentAddress = GraphService.Graph.Address[visited.ParentIndex];
+                    var visitedEdge = parentAddress.Edges[visited.EdgeIndex];
+                    if (visitedEdge.Cost > edges[i].Cost) // If the current cost is lower then its a better route.
+                        context.Visited[edges[i].SubjectId] = new VisitItem(item.Index, i); // Overwrite the old visit with the new because of lower cost
 
                     continue; // We have already done this node, so no need to reprocess.
                 }
@@ -227,7 +229,7 @@ namespace TrustgraphCore.Service
         {
             var edge = new EdgeModel();
 
-            edge.SubjectId = GraphService.Graph.NodeIndex.ContainsKey(query.Subject) ? GraphService.Graph.NodeIndex[query.Subject] : -1;
+            edge.SubjectId = GraphService.Graph.AddressIndex.ContainsKey(query.Subject) ? GraphService.Graph.AddressIndex[query.Subject] : -1;
             edge.SubjectType = GraphService.Graph.SubjectTypesIndex.ContainsKey(query.SubjectType) ? GraphService.Graph.SubjectTypesIndex[query.SubjectType] : -1;
             edge.Scope = (GraphService.Graph.ScopeIndex.ContainsKey(query.Scope)) ? GraphService.Graph.ScopeIndex[query.Scope] : -1;
             

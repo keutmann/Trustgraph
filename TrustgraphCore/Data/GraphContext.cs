@@ -47,7 +47,7 @@ namespace TrustgraphCore.Data
 
         public void InitSubjectModel(SubjectModel node, EdgeModel edge)
         {
-            node.Id = Graph.NodeIndexReverse[edge.SubjectId];
+            node.Id = Graph.Address[edge.SubjectId].Id;
             node.IdType = Graph.SubjectTypesIndexReverse[edge.SubjectType];
             node.Scope = Graph.ScopeIndexReverse[edge.Scope];
             node.Activate = edge.Activate;
@@ -59,13 +59,12 @@ namespace TrustgraphCore.Data
 
         public int EnsureNode(byte[] id)
         {
-            if (Graph.NodeIndex.ContainsKey(id))
-                return Graph.NodeIndex[id];
+            if (Graph.AddressIndex.ContainsKey(id))
+                return Graph.AddressIndex[id];
 
-            var index = Graph.Nodes.Count;
-            Graph.NodeIndex.Add(id, index);
-            Graph.Nodes.Add(new NodeModel());
-            Graph.NodeIndexReverse.Add(index, id); // Revert from the internal index to the id address
+            var index = Graph.Address.Count;
+            Graph.AddressIndex.Add(id, index);
+            Graph.Address.Add(new AddressModel { Id = id });
 
             return index;
         }
