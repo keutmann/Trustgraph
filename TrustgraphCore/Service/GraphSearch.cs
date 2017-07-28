@@ -21,16 +21,9 @@ namespace TrustgraphCore.Service
         {
             Verify(query);
 
-            var context = new QueryContext(GraphService.Graph.Address.Count); // Do not return this object, its heavy on memory!
-            context.IssuerIndex = GraphService.Graph.AddressIndex.ContainsKey(query.Issuer) ? GraphService.Graph.AddressIndex[query.Issuer] : -1;
-            if (context.IssuerIndex == -1)
-                throw new ApplicationException("Unknown issuer id");
-
-            context.Query = CreateEgdeQuery(query);
-            if (context.Query.SubjectId == -1)
-                throw new ApplicationException("Unknown subject id");
-
-            Query(context);
+            var context = new QueryContext(GraphService, query);
+            
+            ExecuteQuery(context);
 
             // Create a stripdown version of QueryContext in order to release Query memory when exiting this function
             var result = BuildResultContext(context);
@@ -122,7 +115,7 @@ namespace TrustgraphCore.Service
 
 
 
-        public void Query(QueryContext context)
+        public void ExecuteQuery(QueryContext context)
         {
             List<QueueItem> queue = new List<QueueItem>();
             queue.Add(new QueueItem(context.IssuerIndex, -1, -1, 0)); // Starting point!
@@ -152,10 +145,7 @@ namespace TrustgraphCore.Service
 
         private bool PeekNode(QueueItem item, QueryContext context)
         {
-
-            //context.Visited.Add(item.Index, 
-            //    new VisitItem(item.ParentIndex, item.EdgeIndex, item.Cost)); // Makes sure that we do not run this block again.
-            context.Visited[item.Index] = new VisitItem(item.ParentIndex, item.EdgeIndex); // Makes sure that we do not run this block again.
+            context.SetVisitItemSafely(item.Index, new VisitItem(item.ParentIndex, item.EdgeIndex)); // Makes sure that we do not run this block again.
             var edges = GraphService.Graph.Address[item.Index].Edges;
 
             for (var i = 0; i < edges.Length; i++)
@@ -192,9 +182,9 @@ namespace TrustgraphCore.Service
         public List<QueueItem> Enqueue(QueueItem item, QueryContext context)
         {
             var list = new List<QueueItem>();
-            var node = GraphService.Graph.Address[item.Index];
+            var address = GraphService.Graph.Address[item.Index];
 
-            var edges = node.Edges;
+            var edges = address.Edges;
             for (var i = 0; i < edges.Length; i++)
             {
                 if (edges[i].SubjectType != context.Query.SubjectType ||
@@ -208,7 +198,7 @@ namespace TrustgraphCore.Service
                 if ((edges[i].Claim.Flags & ClaimType.Trust) == 0)
                     continue; // Do not follow when trust is false or do not exist.
 
-                var visited = context.Visited[edges[i].SubjectId];
+                var visited = context.GetVisitItemSafely(edges[i].SubjectId);
                 if(visited.ParentIndex > -1) // If parentIndex is -1 then it has not been used yet!
                 {
                     var parentAddress = GraphService.Graph.Address[visited.ParentIndex];
@@ -222,22 +212,6 @@ namespace TrustgraphCore.Service
                 list.Add(new QueueItem(edges[i].SubjectId, item.Index, i, edges[i].Cost));
             }
             return list;
-        }
-
-
-        private EdgeModel CreateEgdeQuery(GraphQuery query)
-        {
-            var edge = new EdgeModel();
-
-            edge.SubjectId = GraphService.Graph.AddressIndex.ContainsKey(query.Subject) ? GraphService.Graph.AddressIndex[query.Subject] : -1;
-            edge.SubjectType = GraphService.Graph.SubjectTypesIndex.ContainsKey(query.SubjectType) ? GraphService.Graph.SubjectTypesIndex[query.SubjectType] : -1;
-            edge.Scope = (GraphService.Graph.ScopeIndex.ContainsKey(query.Scope)) ? GraphService.Graph.ScopeIndex[query.Scope] : -1;
-            
-            edge.Activate = query.Activate;
-            edge.Expire = query.Expire;
-            edge.Claim = ClaimStandardModel.Parse(query.Claim);
-
-            return edge;
         }
     }
 }
