@@ -31,8 +31,8 @@ namespace TrustgraphTest.Service
 
             query.Issuers = new List<byte[]>();
             query.Issuers.Add(trust.Issuer.Id);
-            query.Subject = trust.Issuer.Subjects[0].Id;
-            query.SubjectType = trust.Issuer.Subjects[0].IdType;
+            query.Subjects = new List<SubjectQuery>();
+            query.Subjects.Add(new SubjectQuery { Id = trust.Issuer.Subjects[0].Id, Type = trust.Issuer.Subjects[0].IdType });
             query.Scope = trust.Issuer.Subjects[0].Scope;
             query.Activate = trust.Issuer.Subjects[0].Activate;
             query.Expire = trust.Issuer.Subjects[0].Expire;
@@ -64,8 +64,9 @@ namespace TrustgraphTest.Service
 
             query.Issuers = new List<byte[]>();
             query.Issuers.Add(trust1.Issuer.Id);
-            query.Subject = trust2.Issuer.Subjects[0].Id;  // To C
-            query.SubjectType = trust2.Issuer.Subjects[0].IdType;
+            query.Subjects = new List<SubjectQuery>();
+            query.Subjects.Add(new SubjectQuery { Id = trust2.Issuer.Subjects[0].Id, Type = trust2.Issuer.Subjects[0].IdType });
+
             query.Scope = trust2.Issuer.Subjects[0].Scope;
             query.Activate = trust2.Issuer.Subjects[0].Activate;
             query.Expire = trust2.Issuer.Subjects[0].Expire;
@@ -104,8 +105,9 @@ namespace TrustgraphTest.Service
 
             query.Issuers = new List<byte[]>();
             query.Issuers.Add(trust1.Issuer.Id);
-            query.Subject = trust3.Issuer.Subjects[0].Id;  // To C
-            query.SubjectType = trust2.Issuer.Subjects[0].IdType;
+            query.Subjects = new List<SubjectQuery>();
+            query.Subjects.Add(new SubjectQuery { Id = trust3.Issuer.Subjects[0].Id, Type = trust3.Issuer.Subjects[0].IdType });
+
             query.Scope = trust2.Issuer.Subjects[0].Scope;
             query.Activate = trust2.Issuer.Subjects[0].Activate;
             query.Expire = trust2.Issuer.Subjects[0].Expire;
@@ -146,8 +148,9 @@ namespace TrustgraphTest.Service
 
             query.Issuers = new List<byte[]>();
             query.Issuers.Add(trustsource.Issuer.Id);
-            query.Subject = trusttarget.Issuer.Subjects[0].Id;  // To D
-            query.SubjectType = trusttarget.Issuer.Subjects[0].IdType;
+            query.Subjects = new List<SubjectQuery>();
+            query.Subjects.Add(new SubjectQuery { Id = trusttarget.Issuer.Subjects[0].Id, Type = trusttarget.Issuer.Subjects[0].IdType });
+
             query.Scope = trusttarget.Issuer.Subjects[0].Scope;
             query.Activate = trusttarget.Issuer.Subjects[0].Activate;
             query.Expire = trusttarget.Issuer.Subjects[0].Expire;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using TrustgraphCore.Data;
 using TrustgraphCore.Model;
@@ -40,8 +41,8 @@ namespace TrustgraphCore.Service
             //    throw new ApplicationException("Invalid byte length on Issuer");
 
             // Script definition specifies this
-            if (query.Subject.Length != 20)
-                throw new ApplicationException("Invalid byte length on Issuer");
+            //if (query.Subjects.Length != 20)
+            //    throw new ApplicationException("Invalid byte length on Issuer");
         }
 
         public ResultContext BuildResultContext(QueryContext context)
@@ -70,7 +71,6 @@ namespace TrustgraphCore.Service
                 tn.EdgeIndex = new Int64Container(item.NodeIndex, visited.EdgeIndex);
                 GraphService.InitSubjectModel(tn, item.Edge);
 
-                //nodelist.Add(new Int64ToInt32(item.NodeIndex, 0), tn); // Needed?
                 currentNodes.Add(tn);
             }
 
@@ -154,28 +154,30 @@ namespace TrustgraphCore.Service
             {
                 context.TotalEdgeCount++;
 
-                if (edges[i].SubjectType != context.Query.SubjectType ||
-                    edges[i].Scope != context.Query.Scope)
-                    continue;
-
                 if (edges[i].Activate > UnixTime ||
                    (edges[i].Expire > 0 && edges[i].Expire < UnixTime))
                     continue;
 
-                if ((edges[i].Claim.Types & context.Query.Claim.Types) == 0)
+                if ((edges[i].Claim.Types & context.Claim.Types) == 0)
+                    continue; 
+
+                //if (edges[i].SubjectType != context.Query.SubjectType ||
+                if(context.Scope != 0 &&
+                    edges[i].Scope != context.Scope)
                     continue; // No claims match query
 
                 context.MatchEdgeCount++;
 
-                if (edges[i].SubjectId == context.Query.SubjectId)
-                {
-                    var result = new ResultNode();
-                    result.NodeIndex = item.Index;
-                    result.ParentIndex = item.ParentIndex;
-                    result.Edge = edges[i];
-                    context.Results.Add(result);
-                    return true;
-                }
+                for(var t = 0; t < context.TargetIndex.Count; t++) 
+                    if (context.TargetIndex[t].Id == edges[t].SubjectId)
+                    {
+                        var result = new ResultNode();
+                        result.NodeIndex = item.Index;
+                        result.ParentIndex = item.ParentIndex;
+                        result.Edge = edges[i];
+                        context.Results.Add(result);
+                        return true;
+                    }
             }
 
             return false;
@@ -189,8 +191,9 @@ namespace TrustgraphCore.Service
             var edges = address.Edges;
             for (var i = 0; i < edges.Length; i++)
             {
-                if (edges[i].SubjectType != context.Query.SubjectType ||
-                    edges[i].Scope != context.Query.Scope)
+                //if (edges[i].SubjectType != context.Query.SubjectType ||
+                if(context.Scope != 0 && 
+                    edges[i].Scope != context.Scope)
                     continue; // Do not follow when Trust do not match scope or SubjectType
 
                 if (edges[i].Activate > UnixTime ||

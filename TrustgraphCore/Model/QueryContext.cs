@@ -10,7 +10,9 @@ namespace TrustgraphCore.Model
         public IGraphContext GraphService { get; set; }
 
         public List<int> IssuerIndex { get; set; }
-        public EdgeModel Query { get; set; }
+        public List<TargetIndex> TargetIndex { get; set; }
+        public int Scope; // scope of the trust
+        public ClaimStandardModel Claim; // Claims 
         public VisitItem[] Visited = null;
         public List<ResultNode> Results { get; set; }
         public int MaxCost { get; set; }
@@ -23,6 +25,7 @@ namespace TrustgraphCore.Model
         public QueryContext(int addressCount)
         {
             IssuerIndex = new List<int>();
+            TargetIndex = new List<TargetIndex>();
 
             InitializeVisited(addressCount);
 
@@ -42,13 +45,28 @@ namespace TrustgraphCore.Model
                 var index = GraphService.Graph.AddressIndex.ContainsKey(issuer) ? GraphService.Graph.AddressIndex[issuer] : -1;
                 if (index == -1)
                     throw new ApplicationException("Unknown issuer id " + issuer.ConvertToHex());
-
+                
                 IssuerIndex.Add(index);
             }
 
-            Query = CreateEgdeQuery(query);
-            if (Query.SubjectId == -1)
-                throw new ApplicationException("Unknown subject id");
+            foreach (var subject in query.Subjects)
+            {
+                var index = GraphService.Graph.AddressIndex.ContainsKey(subject.Id) ? GraphService.Graph.AddressIndex[subject.Id] : -1;
+                if (index == -1)
+                    throw new ApplicationException("Unknown subject id " + subject.Id.ConvertToHex());
+
+                var type = GraphService.Graph.SubjectTypesIndex.ContainsKey(subject.Type) ? GraphService.Graph.SubjectTypesIndex[subject.Type] : -1;
+                if (index == -1)
+                    throw new ApplicationException("Unknown subject type: " + subject.Type);
+
+                TargetIndex.Add(new TargetIndex { Id = index, Type = type });
+            }
+
+            Scope = (GraphService.Graph.ScopeIndex.ContainsKey(query.Scope)) ? GraphService.Graph.ScopeIndex[query.Scope] : -1;
+            Claim = ClaimStandardModel.Parse(query.Claim);
+            //Query = CreateEgdeQuery(query);
+            //if (Query.SubjectId == -1)
+            //throw new ApplicationException("Unknown subject id");
         }
 
 
@@ -98,8 +116,8 @@ namespace TrustgraphCore.Model
         {
             var edge = new EdgeModel();
 
-            edge.SubjectId = GraphService.Graph.AddressIndex.ContainsKey(query.Subject) ? GraphService.Graph.AddressIndex[query.Subject] : -1;
-            edge.SubjectType = GraphService.Graph.SubjectTypesIndex.ContainsKey(query.SubjectType) ? GraphService.Graph.SubjectTypesIndex[query.SubjectType] : -1;
+            //edge.SubjectId = GraphService.Graph.AddressIndex.ContainsKey(query.Subject) ? GraphService.Graph.AddressIndex[query.Subject] : -1;
+            //edge.SubjectType = GraphService.Graph.SubjectTypesIndex.ContainsKey(query.SubjectType) ? GraphService.Graph.SubjectTypesIndex[query.SubjectType] : -1;
             edge.Scope = (GraphService.Graph.ScopeIndex.ContainsKey(query.Scope)) ? GraphService.Graph.ScopeIndex[query.Scope] : -1;
 
             edge.Activate = query.Activate;
