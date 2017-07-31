@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\QueryController.cs" />
+    <Compile Include="Controllers\TrustController.cs" />
     <Compile Include="Data\GraphContext.cs" />
     <Compile Include="Data\IGraphContext.cs" />
     <Compile Include="IO\BufferingFileSystemWatcher.cs">

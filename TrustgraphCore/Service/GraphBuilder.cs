@@ -17,6 +17,13 @@ namespace TrustgraphCore.Service
             Context = context;
         }
 
+        public IGraphBuilder Append(PackageModel package)
+        {
+            Build(package.Trust);
+
+            return this;
+        }
+
         public void Build(IEnumerable<TrustModel> trusts)
         {
             long unixTime = DateTime.Now.ToUnixTime();

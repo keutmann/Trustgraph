@@ -30,6 +30,9 @@ namespace TrustgraphServer
             var asm = new Assembly[] { typeof(IOCAttribute).Assembly };
             UnitySingleton.Container.RegisterTypesFromAssemblies(asm);
 
+            var core = new Assembly[] { typeof(IGraphBuilder).Assembly };
+            UnitySingleton.Container.RegisterTypesFromAssemblies(core);
+
             var start = new StartOptions();
             start.Urls.Add("http://" + App.Config["endpoint"].ToStringValue("+") + ":" + App.Config["port"].ToInteger(12802) + "/");
             start.Urls.Add("https://" + App.Config["endpoint"].ToStringValue("+") + ":" + App.Config["sslport"].ToInteger(12702) + "/");
