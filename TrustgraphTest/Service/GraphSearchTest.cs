@@ -29,7 +29,8 @@ namespace TrustgraphTest.Service
             var search = BuildSearch(trusts);
             var query = new GraphQuery();
 
-            query.Issuer = trust.Issuer.Id;
+            query.Issuers = new List<byte[]>();
+            query.Issuers.Add(trust.Issuer.Id);
             query.Subject = trust.Issuer.Subjects[0].Id;
             query.SubjectType = trust.Issuer.Subjects[0].IdType;
             query.Scope = trust.Issuer.Subjects[0].Scope;
@@ -61,7 +62,8 @@ namespace TrustgraphTest.Service
             var search = BuildSearch(trusts);
             var query = new GraphQuery();
 
-            query.Issuer = trust1.Issuer.Id; // From A 
+            query.Issuers = new List<byte[]>();
+            query.Issuers.Add(trust1.Issuer.Id);
             query.Subject = trust2.Issuer.Subjects[0].Id;  // To C
             query.SubjectType = trust2.Issuer.Subjects[0].IdType;
             query.Scope = trust2.Issuer.Subjects[0].Scope;
@@ -100,7 +102,8 @@ namespace TrustgraphTest.Service
             var search = BuildSearch(trusts);
             var query = new GraphQuery();
 
-            query.Issuer = trust1.Issuer.Id; // From A 
+            query.Issuers = new List<byte[]>();
+            query.Issuers.Add(trust1.Issuer.Id);
             query.Subject = trust3.Issuer.Subjects[0].Id;  // To C
             query.SubjectType = trust2.Issuer.Subjects[0].IdType;
             query.Scope = trust2.Issuer.Subjects[0].Scope;
@@ -141,7 +144,8 @@ namespace TrustgraphTest.Service
 
             var claim = TrustBuilder.CreateRating(0); // 0 is not used!
 
-            query.Issuer = trustsource.Issuer.Id; // From A 
+            query.Issuers = new List<byte[]>();
+            query.Issuers.Add(trustsource.Issuer.Id);
             query.Subject = trusttarget.Issuer.Subjects[0].Id;  // To D
             query.SubjectType = trusttarget.Issuer.Subjects[0].IdType;
             query.Scope = trusttarget.Issuer.Subjects[0].Scope;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using TrustgraphCore.Data;
+using TrustchainCore.Extensions;
 
 namespace TrustgraphCore.Model
 {
@@ -8,7 +9,7 @@ namespace TrustgraphCore.Model
     {
         public IGraphContext GraphService { get; set; }
 
-        public int IssuerIndex { get; set; }
+        public List<int> IssuerIndex { get; set; }
         public EdgeModel Query { get; set; }
         public VisitItem[] Visited = null;
         public List<ResultNode> Results { get; set; }
@@ -21,6 +22,8 @@ namespace TrustgraphCore.Model
 
         public QueryContext(int addressCount)
         {
+            IssuerIndex = new List<int>();
+
             InitializeVisited(addressCount);
 
             MaxCost = 600; // About 6 levels down
@@ -31,9 +34,17 @@ namespace TrustgraphCore.Model
         public QueryContext(IGraphContext graphService, GraphQuery query) : this(graphService.Graph.Address.Count)
         {
             GraphService = graphService;
-            IssuerIndex = GraphService.Graph.AddressIndex.ContainsKey(query.Issuer) ? GraphService.Graph.AddressIndex[query.Issuer] : -1;
-            if (IssuerIndex == -1)
-                throw new ApplicationException("Unknown issuer id");
+            if(query.Issuers == null || query.Issuers.Count == 0)
+                throw new ApplicationException("Missing issuers");
+
+            foreach (var issuer in query.Issuers)
+            {
+                var index = GraphService.Graph.AddressIndex.ContainsKey(issuer) ? GraphService.Graph.AddressIndex[issuer] : -1;
+                if (index == -1)
+                    throw new ApplicationException("Unknown issuer id " + issuer.ConvertToHex());
+
+                IssuerIndex.Add(index);
+            }
 
             Query = CreateEgdeQuery(query);
             if (Query.SubjectId == -1)

@@ -1,10 +1,11 @@
 ﻿using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 namespace TrustgraphCore.Model
 {
     public class GraphQuery
     {
-        public byte[] Issuer;
+        public List<byte[]> Issuers;
         public byte[] Subject;
         public string SubjectType;
         public string Scope;

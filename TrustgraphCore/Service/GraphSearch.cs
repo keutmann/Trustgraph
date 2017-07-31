@@ -36,9 +36,10 @@ namespace TrustgraphCore.Service
 
         public void Verify(GraphQuery query)
         {
-            if (query.Issuer.Length != 20)
-                throw new ApplicationException("Invalid byte length on Issuer");
+            //if (query.Issuer.Length != 20)
+            //    throw new ApplicationException("Invalid byte length on Issuer");
 
+            // Script definition specifies this
             if (query.Subject.Length != 20)
                 throw new ApplicationException("Invalid byte length on Issuer");
         }
@@ -78,7 +79,7 @@ namespace TrustgraphCore.Service
                 var currentLevelNodes = new List<SubjectNode>();
                 foreach (var tn in currentNodes)
                 {
-                    if (tn.NodeIndex == context.IssuerIndex)
+                    if (context.IssuerIndex.Contains(tn.NodeIndex))
                     {
                         results.Add(tn);
                         continue;
@@ -118,7 +119,8 @@ namespace TrustgraphCore.Service
         public void ExecuteQuery(QueryContext context)
         {
             List<QueueItem> queue = new List<QueueItem>();
-            queue.Add(new QueueItem(context.IssuerIndex, -1, -1, 0)); // Starting point!
+            foreach (var index in context.IssuerIndex)
+                queue.Add(new QueueItem(index, -1, -1, 0)); // Starting point!
 
             while (queue.Count > 0 || context.Level > 6)
             {
