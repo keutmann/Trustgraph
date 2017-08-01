@@ -27,15 +27,13 @@ namespace TrustgraphTest.Service
             trusts.Add(trust);
 
             var search = BuildSearch(trusts);
-            var query = new GraphQuery();
+            var query = new RequestQuery();
 
             query.Issuers = new List<byte[]>();
             query.Issuers.Add(trust.Issuer.Id);
             query.Subjects = new List<SubjectQuery>();
             query.Subjects.Add(new SubjectQuery { Id = trust.Issuer.Subjects[0].Id, Type = trust.Issuer.Subjects[0].IdType });
             query.Scope = trust.Issuer.Subjects[0].Scope;
-            query.Activate = trust.Issuer.Subjects[0].Activate;
-            query.Expire = trust.Issuer.Subjects[0].Expire;
             query.Claim = trust.Issuer.Subjects[0].Claim;
 
             var json = JsonConvert.SerializeObject(query, Formatting.Indented);
@@ -60,7 +58,7 @@ namespace TrustgraphTest.Service
             trusts.Add(trust2);
 
             var search = BuildSearch(trusts);
-            var query = new GraphQuery();
+            var query = new RequestQuery();
 
             query.Issuers = new List<byte[]>();
             query.Issuers.Add(trust1.Issuer.Id);
@@ -68,8 +66,6 @@ namespace TrustgraphTest.Service
             query.Subjects.Add(new SubjectQuery { Id = trust2.Issuer.Subjects[0].Id, Type = trust2.Issuer.Subjects[0].IdType });
 
             query.Scope = trust2.Issuer.Subjects[0].Scope;
-            query.Activate = trust2.Issuer.Subjects[0].Activate;
-            query.Expire = trust2.Issuer.Subjects[0].Expire;
             query.Claim = trust2.Issuer.Subjects[0].Claim;
 
             var json = JsonConvert.SerializeObject(query, Formatting.Indented);
@@ -101,7 +97,7 @@ namespace TrustgraphTest.Service
 
 
             var search = BuildSearch(trusts);
-            var query = new GraphQuery();
+            var query = new RequestQuery();
 
             query.Issuers = new List<byte[]>();
             query.Issuers.Add(trust1.Issuer.Id);
@@ -109,8 +105,6 @@ namespace TrustgraphTest.Service
             query.Subjects.Add(new SubjectQuery { Id = trust3.Issuer.Subjects[0].Id, Type = trust3.Issuer.Subjects[0].IdType });
 
             query.Scope = trust2.Issuer.Subjects[0].Scope;
-            query.Activate = trust2.Issuer.Subjects[0].Activate;
-            query.Expire = trust2.Issuer.Subjects[0].Expire;
             query.Claim = trust2.Issuer.Subjects[0].Claim;
 
             var result = search.Query(query);
@@ -142,7 +136,7 @@ namespace TrustgraphTest.Service
             trusts.Add(TrustBuilder.CreateTrust("G", "D", TrustBuilder.CreateRating(50)));
 
             var search = BuildSearch(trusts);
-            var query = new GraphQuery();
+            var query = new RequestQuery();
 
             var claim = TrustBuilder.CreateRating(0); // 0 is not used!
 
@@ -152,8 +146,6 @@ namespace TrustgraphTest.Service
             query.Subjects.Add(new SubjectQuery { Id = trusttarget.Issuer.Subjects[0].Id, Type = trusttarget.Issuer.Subjects[0].IdType });
 
             query.Scope = trusttarget.Issuer.Subjects[0].Scope;
-            query.Activate = trusttarget.Issuer.Subjects[0].Activate;
-            query.Expire = trusttarget.Issuer.Subjects[0].Expire;
             query.Claim = claim;
 
             var result = search.Query(query);

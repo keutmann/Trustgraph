@@ -18,7 +18,7 @@ namespace TrustgraphCore.Service
             UnixTime = DateTime.Now.ToUnixTime();
         }
 
-        public ResultContext Query(GraphQuery query)
+        public ResultContext Query(RequestQuery query)
         {
             Verify(query);
 
@@ -35,7 +35,7 @@ namespace TrustgraphCore.Service
             return result;
         }
 
-        public void Verify(GraphQuery query)
+        public void Verify(RequestQuery query)
         {
             //if (query.Issuer.Length != 20)
             //    throw new ApplicationException("Invalid byte length on Issuer");

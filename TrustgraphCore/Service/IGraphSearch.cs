@@ -7,7 +7,7 @@ namespace TrustgraphCore.Service
     {
         IGraphContext GraphService { get; set; }
 
-        ResultContext Query(GraphQuery query);
+        ResultContext Query(RequestQuery query);
         ResultContext BuildResultContext(QueryContext context);
     }
 }

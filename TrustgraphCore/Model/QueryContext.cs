@@ -34,7 +34,7 @@ namespace TrustgraphCore.Model
             MaxLevel = 7;
         }
 
-        public QueryContext(IGraphContext graphService, GraphQuery query) : this(graphService.Graph.Address.Count)
+        public QueryContext(IGraphContext graphService, RequestQuery query) : this(graphService.Graph.Address.Count)
         {
             GraphService = graphService;
             if(query.Issuers == null || query.Issuers.Count == 0)
@@ -111,21 +111,5 @@ namespace TrustgraphCore.Model
             for (int i = index; i < count; i++)
                 Visited[i] = template;
         }
-
-        private EdgeModel CreateEgdeQuery(GraphQuery query)
-        {
-            var edge = new EdgeModel();
-
-            //edge.SubjectId = GraphService.Graph.AddressIndex.ContainsKey(query.Subject) ? GraphService.Graph.AddressIndex[query.Subject] : -1;
-            //edge.SubjectType = GraphService.Graph.SubjectTypesIndex.ContainsKey(query.SubjectType) ? GraphService.Graph.SubjectTypesIndex[query.SubjectType] : -1;
-            edge.Scope = (GraphService.Graph.ScopeIndex.ContainsKey(query.Scope)) ? GraphService.Graph.ScopeIndex[query.Scope] : -1;
-
-            edge.Activate = query.Activate;
-            edge.Expire = query.Expire;
-            edge.Claim = ClaimStandardModel.Parse(query.Claim);
-
-            return edge;
-        }
-
     }
 }

@@ -20,7 +20,7 @@ namespace TrustgraphCore.Controllers
 
         // Post api/
         [HttpPost]
-        public IHttpActionResult ResolvePost([FromBody]GraphQuery query)
+        public IHttpActionResult ResolvePost([FromBody]RequestQuery query)
         {
             try
             {
