@@ -5,6 +5,7 @@
 /// </summary>
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
@@ -88,14 +89,14 @@ namespace TrustgraphCore.IO
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Unexpected error: {0}", ex.Message);
+                Trace.TraceError($"Unexpected error: {0}", ex.Message);
                 throw;
             }
         }
 
         private void _monitorTimer_Elapsed(object state)
         {
-            Console.WriteLine("Watching:{0}", Path);
+            Trace.TraceInformation("Watching:{0}", Path);
 
             try
             {
@@ -105,12 +106,12 @@ namespace TrustgraphCore.IO
                 }
                 else
                 {
-                    Console.WriteLine("Directory {0} accessibility is OK.", Path);
+                    Trace.TraceInformation("Directory {0} accessibility is OK.", Path);
                     if (!EnableRaisingEvents)
                     {
                         EnableRaisingEvents = true;
                         if (_isRecovering)
-                            Console.WriteLine("<= Watcher recovered");
+                            Trace.TraceInformation("<= Watcher recovered");
                     }
 
                     ReStartIfNeccessary(DirectoryMonitorInterval);
@@ -124,11 +125,11 @@ namespace TrustgraphCore.IO
 
                 if (_isRecovering)
                 {
-                    Console.WriteLine("...retrying");
+                    Trace.TraceInformation("...retrying");
                 }
                 else
                 {
-                    Console.WriteLine("=> Directory {0} Is Not accessible. - Will try to recover automatically in {DirectoryRetryInterval}!", Path);
+                    Trace.TraceInformation("=> Directory {0} Is Not accessible. - Will try to recover automatically in {DirectoryRetryInterval}!", Path);
                     _isRecovering = true;
                 }
 
@@ -138,7 +139,7 @@ namespace TrustgraphCore.IO
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine("Unexpected error: {0}", ex.Message);
+                Trace.TraceError("Unexpected error: {0}", ex.Message);
                 throw;
             }
         }
@@ -168,19 +169,19 @@ namespace TrustgraphCore.IO
 
             if (ex is InternalBufferOverflowException || ex is EventQueueOverflowException)
             {
-                Console.Error.WriteLine(ex.Message);
-                Console.Error.WriteLine("This should Not happen with short event handlers! - Will recover automatically.");
+                Trace.TraceError(ex.Message);
+                Trace.TraceError("This should Not happen with short event handlers! - Will recover automatically.");
                 ReStartIfNeccessary(DirectoryRetryInterval);
             }
             else if (ex is Win32Exception && (ex.HResult == NetworkNameNoLongerAvailable | ex.HResult == AccessIsDenied))
             {
-                Console.WriteLine(ex.Message);
-                Console.WriteLine("Will try to recover automatically!");
+                Trace.TraceInformation(ex.Message);
+                Trace.TraceInformation("Will try to recover automatically!");
                 ReStartIfNeccessary(DirectoryRetryInterval);
             }
             else
             {
-                Console.Error.WriteLine("Unexpected error: {0} - Watcher is disabled!", ex.Message);
+                Trace.TraceError("Unexpected error: {0} - Watcher is disabled!", ex.Message);
                 throw ex;
             }
         }

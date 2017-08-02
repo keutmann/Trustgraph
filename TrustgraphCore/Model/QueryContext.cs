@@ -6,8 +6,8 @@ using Newtonsoft.Json;
 
 namespace TrustgraphCore.Model
 {
-    [JsonObject(MemberSerialization.OptIn)]
-    public class QueryContext
+    
+    public class QueryContext : GraphResult
     {
         public IGraphContext GraphService { get; set; }
 
@@ -39,8 +39,8 @@ namespace TrustgraphCore.Model
         [JsonProperty(PropertyName = "unknownsubjecttypes", NullValueHandling = NullValueHandling.Ignore, Order = 90)]
         public List<string> UnknownSubjectTypes = new List<string>();
 
-        [JsonProperty(PropertyName = "nodes", NullValueHandling = NullValueHandling.Ignore, Order = 100)]
-        public List<SubjectNode> Nodes { get; set; }
+        //[JsonProperty(PropertyName = "nodes", NullValueHandling = NullValueHandling.Ignore, Order = 100)]
+        //public List<SubjectNode> Nodes { get; set; }
 
         public QueryContext(int addressCount)
         {

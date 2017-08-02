@@ -3,6 +3,7 @@ using Microsoft.Practices.Unity;
 using Newtonsoft.Json;
 using Owin;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http.Formatting;
@@ -27,19 +28,18 @@ namespace TrustgraphServer
 
         public void Start()
         {
-            var asm = new Assembly[] { typeof(IOCAttribute).Assembly };
-            UnitySingleton.Container.RegisterTypesFromAssemblies(asm);
 
-            var core = new Assembly[] { typeof(IGraphBuilder).Assembly };
-            UnitySingleton.Container.RegisterTypesFromAssemblies(core);
+            var asm = new Assembly[] { typeof(IOCAttribute).Assembly, typeof(IGraphBuilder).Assembly };
+            UnitySingleton.Container.RegisterTypesFromAssemblies(asm);
+            Trace.TraceInformation("Register types from assemblies");
 
             var start = new StartOptions();
-            start.Urls.Add("http://" + App.Config["endpoint"].ToStringValue("+") + ":" + App.Config["port"].ToInteger(12802) + "/");
+            start.Urls.Add("http://" + App.Config["endpoint"].ToStringValue("+") + ":" + App.Config["port"].ToInteger(12602) + "/");
             start.Urls.Add("https://" + App.Config["endpoint"].ToStringValue("+") + ":" + App.Config["sslport"].ToInteger(12702) + "/");
-
+            
             _webApp = WebApp.Start<StartOwin>(start);
+            Trace.Listeners.RemoveAt(Trace.Listeners.Count - 1);
 
-            //timeInMs = App.Config["processinterval"].ToInteger(timeInMs);
             _watcher = StartWatcher();
         }
 
@@ -51,7 +51,6 @@ namespace TrustgraphServer
             //watcher.DirectoryMonitorInterval = TimeSpan.FromSeconds(10);
             //watcher.EventQueueCapacity = 1;
             watcher.EnableRaisingEvents = true;
-            Console.WriteLine("FileWatcher started on " + AppDirectory.LibraryPath);
 
             return watcher;
         }
@@ -61,7 +60,7 @@ namespace TrustgraphServer
             if (watcher != null)
             {
                 watcher.Dispose();
-                Console.WriteLine("FileWatcher stopped");
+                Trace.TraceInformation("FileWatcher stopped");
             }
         }
 
@@ -70,14 +69,14 @@ namespace TrustgraphServer
             if (e.ChangeType == WatcherChangeTypes.Deleted || e.ChangeType == WatcherChangeTypes.Renamed)
                 return;
 
-            Console.WriteLine("Loading "+ e.Name);
+            Trace.TraceInformation("Loading "+ e.Name);
             var loader = UnitySingleton.Container.Resolve<ITrustLoader>();
             loader.LoadFile(e.Name); // e.FullPath bug?!
         }
 
         private void _watcher_Error(object sender, FileWatcherErrorEventArgs e)
         {
-            Console.Error.WriteLine(e.Error.Message);
+            Trace.TraceError(e.Error.Message);
             e.Handled = true;
         }
 

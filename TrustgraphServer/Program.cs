@@ -1,13 +1,15 @@
 ﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Topshelf;
+using Topshelf.Logging;
 using TrustchainCore.Business;
 using TrustchainCore.Configuration;
-using TrustchainCore.Extensions;
 
 
 namespace TrustgraphServer
@@ -22,7 +24,7 @@ namespace TrustgraphServer
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine(ex.Message);
+                Trace.Fail(ex.Message);
                 return -1;
             }
         }
@@ -30,15 +32,13 @@ namespace TrustgraphServer
         private static int Setup()
         {
             App.LoadConfigFile("config.json");
-            if (App.Config["eventlog"].ToBoolean() == true)
-                App.EnableEventLogger();
 
             // Ensure AppData directories
             AppDirectory.Setup();
+            App.InitializeLogging();
 
             // Only when we need to create a config file. 
             //App.SaveConfigFile("config.json");
-
             var result = (int)HostFactory.Run(configurator =>
             {
                 // Setup configuration from commandline 
@@ -50,7 +50,7 @@ namespace TrustgraphServer
                         case JTokenType.Boolean: configurator.AddCommandLineDefinition(property.Name, value => { property.Value = bool.Parse(value); }); break;
                     }
                 configurator.ApplyCommandLine();
-
+                
                 configurator.Service<TrustgraphService>(s =>
                 {
                     s.ConstructUsing(() => new TrustgraphService());
@@ -59,6 +59,11 @@ namespace TrustgraphServer
                     s.WhenContinued(service => service.Continue());
                     s.WhenStopped(service => service.Stop());
                 });
+
+                configurator.RunAsLocalSystem();
+                configurator.SetDescription("Trustchain Graph Server");
+                configurator.SetDisplayName("Trustgraph");
+                configurator.SetServiceName("Trustgraph");
             });
 
             return result;
