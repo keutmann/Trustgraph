@@ -18,21 +18,19 @@ namespace TrustgraphCore.Service
             UnixTime = DateTime.Now.ToUnixTime();
         }
 
-        public ResultContext Query(RequestQuery query)
+        public QueryContext Query(RequestQuery query)
         {
             Verify(query);
 
             var context = new QueryContext(GraphService, query);
             
-            ExecuteQuery(context);
-
-            // Create a stripdown version of QueryContext in order to release Query memory when exiting this function
-            var result = BuildResultContext(context);
+            if(context.IssuerIndex.Count > 0 && context.TargetIndex.Count > 0)
+                ExecuteQuery(context);
 
             if (context.Results.Count > 0)
-                result.Nodes = BuildResultNode(context);//result.Node = BuildResultTree(context);
+                context.Nodes = BuildResultNode(context);//result.Node = BuildResultTree(context);
 
-            return result;
+            return context;
         }
 
         public void Verify(RequestQuery query)
@@ -43,17 +41,6 @@ namespace TrustgraphCore.Service
             // Script definition specifies this
             //if (query.Subjects.Length != 20)
             //    throw new ApplicationException("Invalid byte length on Issuer");
-        }
-
-        public ResultContext BuildResultContext(QueryContext context)
-        {
-            var result = new ResultContext();
-
-            result.TotalNodeCount = context.TotalNodeCount;
-            result.TotalEdgeCount = context.TotalEdgeCount;
-            result.MatchEdgeCount = context.MatchEdgeCount;
-           
-            return result;
         }
 
         public List<SubjectNode> BuildResultNode(QueryContext context)

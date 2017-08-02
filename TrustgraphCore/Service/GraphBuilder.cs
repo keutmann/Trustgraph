@@ -24,7 +24,7 @@ namespace TrustgraphCore.Service
             return this;
         }
 
-        public void Build(IEnumerable<TrustModel> trusts)
+        public IGraphBuilder Build(IEnumerable<TrustModel> trusts)
         {
             long unixTime = DateTime.Now.ToUnixTime();
             foreach (var trust in trusts)
@@ -44,6 +44,7 @@ namespace TrustgraphCore.Service
                 issuerNode.Edges = issuerEdges.ToArray();
                 Context.Graph.Address[issuerIndex] = issuerNode;
             }
+            return this;
         }
 
         private void BuildSubject(TrustModel trust, List<EdgeModel> issuerEdges, SubjectModel subject)

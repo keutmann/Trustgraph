@@ -34,13 +34,6 @@ namespace TrustgraphCore.Controllers
             }
         }
 
-        // GET api/
-        [HttpGet]
-        public IHttpActionResult Get()
-        {
-            return Ok("OK");
-        }
-
 
         //// GET api/
         //[HttpGet]

@@ -16,6 +16,12 @@ namespace TrustgraphCore.Model
         public int TotalEdgeCount = 0;
         public int MatchEdgeCount = 0;
 
+        [JsonProperty(PropertyName = "unknownissuers", NullValueHandling = NullValueHandling.Ignore, Order = 80)]
+        public List<byte[]> UnknownIssuers = null;
+
+        [JsonProperty(PropertyName = "unknownsubjects", NullValueHandling = NullValueHandling.Ignore, Order = 90)]
+        public List<byte[]> UnknownSubjects = null;
+
         [JsonProperty(PropertyName = "nodes", NullValueHandling = NullValueHandling.Ignore, Order = 100)]
         public List<SubjectNode> Nodes { get; set; }
     }

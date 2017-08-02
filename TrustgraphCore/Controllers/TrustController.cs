@@ -6,7 +6,11 @@ using TrustchainCore.Business;
 using TrustchainCore.Configuration;
 using TrustgraphCore.Service;
 using TrustchainCore.Extensions;
-using System.Net;
+using TrustchainCore.Model;
+using Newtonsoft.Json;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace TrustgraphCore.Controllers
 {
@@ -14,41 +18,38 @@ namespace TrustgraphCore.Controllers
     {
         public const string Path = "/api/trust/";
 
-        public IGraphBuilder Builder { get; set; }
+        private IGraphBuilder graphBuilder;
 
         public TrustController(IGraphBuilder builder)
         {
-            Builder = builder;
-        }
-
-        [HttpGet]
-        public IHttpActionResult Get()
-        {
-            return Ok("OK");
+            graphBuilder = builder;
         }
 
         [HttpPost]
-        public IHttpActionResult Add(HttpRequestMessage requrest)
+        public IHttpActionResult Add([FromBody]PackageModel package)
         {
             try
             {
-                var content = requrest.Content.ReadAsStringAsync().Result;
-                var package = new TrustBuilder(content).Verify().Package;
+                var trustBuilder = new TrustBuilder(package);
+                trustBuilder.Verify();
 
-                Builder.Append(package);
+                graphBuilder.Append(package);
 
-                var buildserverUrl = App.Config["buildserver"].ToStringValue();
+                var buildserverUrl = App.Config["buildserver"].ToStringValue("http://127.0.01:12601");
                 if (!string.IsNullOrEmpty(buildserverUrl))
                 {
                     var fullUrl = new UriBuilder(buildserverUrl);
                     fullUrl.Path = Path;
-                    using (WebClient web = new WebClient())
+                    using (var client = new HttpClient())
                     {
-                        web.UploadString(fullUrl.ToString(), content);
+                        var response = client.PostAsJsonAsync(fullUrl.ToString(), package);
+                        Task.WaitAll(response);
+                        var result = response.Result;
+                        if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                            return InternalServerError();
                     }
                 }
-
-                return Ok();
+                return Ok(new { status = "succes" });
             }
             catch (Exception ex)
             {

@@ -9,6 +9,6 @@ namespace TrustgraphCore.Service
         IGraphContext Context { get; set; }
 
         IGraphBuilder Append(PackageModel package);
-        void Build(IEnumerable<TrustModel> trusts);
+        IGraphBuilder Build(IEnumerable<TrustModel> trusts);
     }
 }
