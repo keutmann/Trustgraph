@@ -47,55 +47,67 @@ namespace TrustgraphCore.Service
         {
             var results = new List<SubjectNode>();
             var nodelist = new Dictionary<Int64Container, SubjectNode>();
-            var currentNodes = new List<SubjectNode>();
+            var subjectNodes = new List<SubjectNode>();
             foreach (var item in context.Results)
             {
                 var tn = new SubjectNode();
-                tn.NodeIndex = item.NodeIndex;
-                tn.ParentIndex = item.ParentIndex;
-                var visited = context.Visited[tn.NodeIndex];
+                tn.NodeIndex = item.Edge.SubjectId;
+                tn.ParentIndex = item.NodeIndex;
+                var visited = context.Visited[item.NodeIndex];
 
                 tn.EdgeIndex = new Int64Container(item.NodeIndex, visited.EdgeIndex);
                 GraphService.InitSubjectModel(tn, item.Edge);
 
-                currentNodes.Add(tn);
+                subjectNodes.Add(tn);
             }
 
             while (results.Count == 0)
             {
                 var currentLevelNodes = new List<SubjectNode>();
-                foreach (var tn in currentNodes)
+                foreach (var subject in subjectNodes)
                 {
-                    if (context.IssuerIndex.Contains(tn.NodeIndex))
-                    {
-                        results.Add(tn);
-                        continue;
-                    }
+                    //if (context.IssuerIndex.Contains(subject.NodeIndex))
+                    //{
+                    //    results.Add(subject);
+                    //    continue;
+                    //}
 
                     var parentNode = new SubjectNode();
-                    parentNode.NodeIndex = tn.ParentIndex;
+                    parentNode.NodeIndex = subject.ParentIndex;
 
-                    var visited = context.Visited[tn.NodeIndex];
-                    parentNode.ParentIndex = context.Visited[tn.ParentIndex].ParentIndex;
+                    var visited = context.Visited[subject.NodeIndex];
+                    parentNode.ParentIndex = context.Visited[subject.ParentIndex].ParentIndex;
                     parentNode.EdgeIndex = new Int64Container(parentNode.NodeIndex, visited.EdgeIndex);
 
                     if (nodelist.ContainsKey(parentNode.EdgeIndex))
                     {
                         // A previouse node in the collection has already created this
-                        nodelist[parentNode.EdgeIndex].Nodes.Add(tn);
+                        nodelist[parentNode.EdgeIndex].Nodes.Add(subject);
                         continue;
                     }
 
                     var address = GraphService.Graph.Address[parentNode.NodeIndex];
-                    var edge = address.Edges[visited.EdgeIndex];
-                    GraphService.InitSubjectModel(parentNode, edge);
+                    parentNode.Id = address.Id;
+
+                    if (visited.EdgeIndex >= 0)
+                    {
+                        var edge = address.Edges[visited.EdgeIndex];
+                        GraphService.InitSubjectModel(parentNode, edge);
+                    }
                     parentNode.Nodes = new List<SubjectNode>();
-                    parentNode.Nodes.Add(tn);
+                    parentNode.Nodes.Add(subject);
 
                     currentLevelNodes.Add(parentNode);
                     nodelist.Add(parentNode.EdgeIndex, parentNode);
+
+                    if (context.IssuerIndex.Contains(parentNode.NodeIndex))
+                    {
+                        results.Add(parentNode);
+                        continue;
+                    }
+
                 }
-                currentNodes = currentLevelNodes;
+                subjectNodes = currentLevelNodes;
             }
 
             return results;

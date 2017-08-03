@@ -34,7 +34,7 @@ namespace TrustgraphCore.Controllers
                 trustBuilder.Verify();
 
                 graphBuilder.Append(package);
-
+#if RELEASE
                 var buildserverUrl = App.Config["buildserver"].ToStringValue("http://127.0.01:12601");
                 if (!string.IsNullOrEmpty(buildserverUrl))
                 {
@@ -49,6 +49,8 @@ namespace TrustgraphCore.Controllers
                             return InternalServerError();
                     }
                 }
+#endif
+
                 return Ok(new { status = "succes" });
             }
             catch (Exception ex)

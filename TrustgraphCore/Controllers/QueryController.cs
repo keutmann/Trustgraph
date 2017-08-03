@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Web.Http;
 using System.Web.Http.Results;
+using TrustchainCore.Business;
 using TrustgraphCore.Model;
 using TrustgraphCore.Service;
 
@@ -16,6 +18,25 @@ namespace TrustgraphCore.Controllers
         public QueryController(IGraphSearch service)
         {
             Service = service;
+        }
+
+        //        public IHttpActionResult Get(string issuer, string subject, string subjectType = "", string? scope, bool? trust, bool? confirm, bool? rating)
+
+        // GET api/
+        [HttpGet]
+        public IHttpActionResult Get(string issuer, string subject, bool trust = true)
+        {
+            var query = new RequestQuery();
+            query.Issuers = new List<Byte[]>();
+            query.Issuers.Add(Convert.FromBase64String(issuer));
+
+            query.Subjects = new List<SubjectQuery>();
+            query.Subjects.Add(new SubjectQuery { Id = Convert.FromBase64String(subject), Type = "" });
+
+            query.Claim = TrustBuilder.CreateTrustTrue();
+            query.Scope = string.Empty; // Global
+            
+            return ResolvePost(query);
         }
 
         // Post api/
