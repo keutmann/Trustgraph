@@ -20,7 +20,7 @@ namespace TrustgraphCore.Model
         public Int64Container EdgeIndex { get; set; }
 
         [JsonProperty(PropertyName = "nodes", NullValueHandling = NullValueHandling.Ignore, Order = 100)]
-        public List<SubjectNode> Children { get; set; }
+        public List<SubjectNode> Nodes { get; set; }
 
         public SubjectNode() : base()
         {

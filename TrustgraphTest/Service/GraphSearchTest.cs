@@ -174,14 +174,14 @@ namespace TrustgraphTest.Service
 
         private void PrintResult(SubjectNode node, IGraphContext service, int level)
         {
-            if (node.Children == null)
+            if (node.Nodes == null)
             {
                 Console.Write("".PadLeft(level, '-'));
                 Console.WriteLine("Issuer: {1} trust subject {2}", level, node.NodeIndex, node.Id.ConvertToHex());
                 return;
             }
 
-            foreach (var child in node.Children)
+            foreach (var child in node.Nodes)
             {
                 Console.Write("".PadLeft(level, '-'));
                 Console.WriteLine("Issuer: {1} trust subject {2}", level, node.NodeIndex, child.NodeIndex);

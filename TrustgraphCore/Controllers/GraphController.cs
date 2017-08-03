@@ -7,9 +7,9 @@ namespace TrustgraphCore.Controllers
     {
         public const string Path = "/api/graph/";
 
-        public IGraphDump Service { get; set; }
+        public IGraphExport Service { get; set; }
 
-        public GraphController(IGraphDump service)
+        public GraphController(IGraphExport service)
         {
             Service = service;
         }

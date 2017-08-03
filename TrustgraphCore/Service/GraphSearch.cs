@@ -82,15 +82,15 @@ namespace TrustgraphCore.Service
                     if (nodelist.ContainsKey(parentNode.EdgeIndex))
                     {
                         // A previouse node in the collection has already created this
-                        nodelist[parentNode.EdgeIndex].Children.Add(tn);
+                        nodelist[parentNode.EdgeIndex].Nodes.Add(tn);
                         continue;
                     }
 
                     var address = GraphService.Graph.Address[parentNode.NodeIndex];
                     var edge = address.Edges[visited.EdgeIndex];
                     GraphService.InitSubjectModel(parentNode, edge);
-                    parentNode.Children = new List<SubjectNode>();
-                    parentNode.Children.Add(tn);
+                    parentNode.Nodes = new List<SubjectNode>();
+                    parentNode.Nodes.Add(tn);
 
                     currentLevelNodes.Add(parentNode);
                     nodelist.Add(parentNode.EdgeIndex, parentNode);
