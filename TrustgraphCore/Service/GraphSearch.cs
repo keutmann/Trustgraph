@@ -66,12 +66,6 @@ namespace TrustgraphCore.Service
                 var currentLevelNodes = new List<SubjectNode>();
                 foreach (var subject in subjectNodes)
                 {
-                    //if (context.IssuerIndex.Contains(subject.NodeIndex))
-                    //{
-                    //    results.Add(subject);
-                    //    continue;
-                    //}
-
                     var parentNode = new SubjectNode();
                     parentNode.NodeIndex = subject.ParentIndex;
 
@@ -121,7 +115,7 @@ namespace TrustgraphCore.Service
             foreach (var index in context.IssuerIndex)
                 queue.Add(new QueueItem(index, -1, -1, 0)); // Starting point!
 
-            while (queue.Count > 0 || context.Level > 6)
+            while (queue.Count > 0 && context.Level < 4) // Do go more than 4 levels down
             {
                 context.TotalNodeCount += queue.Count;
 
@@ -146,6 +140,7 @@ namespace TrustgraphCore.Service
 
         private bool PeekNode(QueueItem item, QueryContext context)
         {
+            int found = 0;
             context.SetVisitItemSafely(item.Index, new VisitItem(item.ParentIndex, item.EdgeIndex)); // Makes sure that we do not run this block again.
             var edges = GraphService.Graph.Address[item.Index].Edges;
 
@@ -168,18 +163,20 @@ namespace TrustgraphCore.Service
                 context.MatchEdgeCount++;
 
                 for(var t = 0; t < context.TargetIndex.Count; t++) 
-                    if (context.TargetIndex[t].Id == edges[t].SubjectId)
+                    if (context.TargetIndex[t].Id == edges[i].SubjectId)
                     {
                         var result = new ResultNode();
                         result.NodeIndex = item.Index;
                         result.ParentIndex = item.ParentIndex;
                         result.Edge = edges[i];
                         context.Results.Add(result);
-                        return true;
+                        found ++;
+                        if (found >= context.TargetIndex.Count) // Do not look further, because we found them all.
+                            return true;
                     }
             }
 
-            return false;
+            return found != 0;
         }
 
         public List<QueueItem> Enqueue(QueueItem item, QueryContext context)
@@ -219,3 +216,4 @@ namespace TrustgraphCore.Service
         }
     }
 }
+
