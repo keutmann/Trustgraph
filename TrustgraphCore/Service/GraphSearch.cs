@@ -143,6 +143,8 @@ namespace TrustgraphCore.Service
             int found = 0;
             context.SetVisitItemSafely(item.Index, new VisitItem(item.ParentIndex, item.EdgeIndex)); // Makes sure that we do not run this block again.
             var edges = GraphService.Graph.Address[item.Index].Edges;
+            if (edges == null)
+                return false;
 
             for (var i = 0; i < edges.Length; i++)
             {
@@ -185,6 +187,9 @@ namespace TrustgraphCore.Service
             var address = GraphService.Graph.Address[item.Index];
 
             var edges = address.Edges;
+            if (edges == null)
+                return list;
+
             for (var i = 0; i < edges.Length; i++)
             {
                 //if (edges[i].SubjectType != context.Query.SubjectType ||
